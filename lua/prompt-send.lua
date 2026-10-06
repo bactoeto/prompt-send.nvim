@@ -36,11 +36,6 @@ function default_refs.file()
   return vim.fn.fnamemodify(name, ":.")
 end
 
---- @n : a literal newline, handy for multi-line prompts
-function default_refs.n()
-  return "\n"
-end
-
 --- @select : last Visual selection, read from '< and '> marks
 function default_refs.select()
   local smark = vim.fn.getpos("'<")
@@ -133,8 +128,8 @@ local function resolve_prompt(prompt)
   local ESCAPE = "\1"   -- stands in for an escaped "@"
 
   local resolved = prompt:gsub("@@", ESCAPE)
-  -- `@n` inserts a newline; eat one trailing space so `a@n b` becomes `a\nb`
-  resolved = resolved:gsub("@n([ \t])", "\n")
+  -- `@N` is reserved for a newline and is self-delimiting: `a@Nb` -> `a\nb`
+  resolved = resolved:gsub("@N", "\n")
   resolved = resolved:gsub("@([%w_%-]+)", function(name)
     local fn = refs[name]
     if fn == nil then

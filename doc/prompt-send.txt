@@ -143,12 +143,12 @@ REFERENCES
 
     Unstaged changes in the repository ("git diff --no-color").
 
-@n                                                           *prompt-send-@n*
+@N                                                           *prompt-send-@N*
 
-    A literal newline, for multi-line prompts. Follow it with a space (which
-    is eaten), punctuation, or the end of the prompt: `a@n b` gives `a` and
-    `b` on separate lines. `a@nb` does not work — names are greedy, so it
-    looks up a reference named `nb`.
+    A literal newline. `@N` is self-delimiting, so it works right next to
+    text: `a@Nb` gives `a` and `b` on separate lines. Capital `N` is
+    reserved — do not start a reference name with it. `@@N` gives a literal
+    `@N`.
 
 ==============================================================================
 API

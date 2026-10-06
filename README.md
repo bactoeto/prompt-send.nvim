@@ -35,7 +35,7 @@ the references, edit, and send. But that's enough, isn't it?
 
 - `:PromptSend` — resolve `@references` and send the prompt
 - `:PromptTmuxPane` — choose the tmux pane that receives prompts
-- Built-in `@buffer`, `@file`, `@select`, `@diagnostic`, `@gitdiff`, `@n`
+- Built-in `@buffer`, `@file`, `@select`, `@diagnostic`, `@gitdiff`, `@N`
 - `@` completion; works from Visual mode
 - Sends through tmux by default, or any command you configure
 
@@ -88,7 +88,7 @@ require('prompt-send').setup({
 | `@select` | Last Visual selection |
 | `@diagnostic` | LSP diagnostics of the current buffer |
 | `@gitdiff` | Unstaged git changes |
-| `@n` | A literal newline |
+| `@N` | A literal newline (self-delimiting; capital `N` is reserved) |
 
 `@@` escapes an `@` — `@@buffer` is the literal `@buffer`. Add your own with
 `references = { name = function() ... end }`.
