@@ -58,6 +58,8 @@ require('prompt-send').setup({
     enter = true,           -- append Enter to the tmux sender
     stdin = false,          -- pass prompt via stdin
     pane = nil,             -- tmux pane to send to; nil = auto-scan
+    agents = { 'opencode', 'claude', 'codex', 'aider', 'gemini', 'crush',
+               'goose', 'cursor-agent', 'openhands' }, -- agent-pane hints
     references = {},        -- add or override @reference
 })
 ```
@@ -107,14 +109,31 @@ anything more complex (pipes, redirection, `sh -c`).
 ### `pane`
 
 Which tmux pane the built-in sender types into. Defaults to `nil`, which
-scans for the first non-Neovim pane on each send. Set it to a pane id to pin
-one from the start — it lives in your config, so it survives restarts:
+scans the panes on each send: it prefers one that looks like an agent (see
+`agents`), and otherwise falls back to the first non-Neovim pane. Set it to a
+pane id to pin one from the start — it lives in your config, so it survives
+restarts:
 
 ```lua
 require('prompt-send').setup({ pane = '%2' })
 ```
 
 `:PromptTmuxPane` still overrides it for the current session.
+
+### `agents`
+
+The names used to spot an agent pane when `pane` is `nil`. Each pane's
+current command (`pane_current_command`) and title (`pane_title`) are matched
+against this list, and the first match wins:
+
+```lua
+require('prompt-send').setup({
+    agents = { 'opencode', 'claude', 'codex', 'aider', 'gemini', 'crush', 'goose' },
+})
+```
+
+It is only a hint: if nothing matches, the first non-Neovim pane is used. Set
+`agents = {}` for that older, dumber behavior.
 
 ### `enter`
 

@@ -12,6 +12,10 @@ M.config = {
   stdin = false,       -- pass prompt via stdin instead of as the last arg
   references = {},
   pane = nil,          -- tmux pane to send to; nil / "auto" = scan
+  agents = {           -- names matched against pane command + title
+    "opencode", "claude", "codex", "aider", "gemini", "crush", "goose",
+    "cursor-agent", "openhands",
+  },
 }
 
 -- ── Default References ─────────────────────────────────────────────────────
@@ -109,14 +113,15 @@ end
 -- ── Tmux Pane Selection ────────────────────────────────────────────────────
 
 local function list_tmux_panes()
-  local out = vim.fn.systemlist(
-    "tmux list-panes -a -F '#{pane_id} #{pane_current_command}'"
-  )
+  local out = vim.fn.systemlist({
+    "tmux", "list-panes", "-a", "-F",
+    "#{pane_id}\t#{pane_current_command}\t#{pane_title}",
+  })
   local panes = {}
   for _, line in ipairs(out) do
-    local id, cmd = line:match("^(%%%d+)%s+(.+)$")
+    local id, cmd, title = line:match("^(%%%d+)\t([^\t]*)\t(.*)$")
     if id then
-      table.insert(panes, { id = id, cmd = cmd })
+      table.insert(panes, { id = id, cmd = cmd, title = title })
     end
   end
   return panes
@@ -127,14 +132,23 @@ local function is_nvim_command(cmd)
   return base == "nvim" or base == "vim" or base == "vi"
 end
 
-local function find_first_non_nvim_pane()
+--- Pick a tmux pane: a pane whose command/title looks like an agent first,
+--- then the first non-Neovim pane.
+local function find_default_pane()
   local self_pane = vim.env.TMUX_PANE
+  local fallback = nil
   for _, p in ipairs(list_tmux_panes()) do
     if p.id ~= self_pane and not is_nvim_command(p.cmd) then
-      return p.id
+      local hay = ("%s %s"):format(p.cmd or "", p.title or ""):lower()
+      for _, name in ipairs(M.config.agents) do
+        if hay:find(name:lower(), 1, true) then
+          return p.id
+        end
+      end
+      fallback = fallback or p.id
     end
   end
-  return nil
+  return fallback
 end
 
 local function prompt_tmux_pane()
@@ -176,7 +190,7 @@ end
 --- @param prompt string
 --- @return string[]
 local function tmux_argv(prompt)
-  local pane = M.config.pane or find_first_non_nvim_pane()
+  local pane = M.config.pane or find_default_pane()
   if not pane then
     error("no non-neovim tmux pane found")
   end
@@ -350,6 +364,7 @@ function M.setup(opts)
   if opts.pane ~= nil then
     M.config.pane = (opts.pane ~= "auto") and opts.pane or nil
   end
+  if opts.agents ~= nil then M.config.agents = opts.agents end
 
   vim.api.nvim_create_user_command("PromptSend", function(args)
     local prompt = args.args

@@ -20,6 +20,8 @@ SETUP                                                    *prompt-send.setup*
       enter      = true,  -- append Enter to the tmux sender
       stdin      = false, -- pass prompt via stdin (string send only)
       pane       = nil,   -- tmux pane to send to; nil = auto-scan
+      agents     = { 'opencode', 'claude', 'codex', 'aider', 'gemini',
+                     'crush', 'goose', 'cursor-agent', 'openhands' },
       references = {},    -- add or override @references
   })
 <
@@ -46,9 +48,16 @@ send                                                       *prompt-send.send*
 
 pane                                                       *prompt-send.pane*
     Which tmux pane the built-in sender types into. Defaults to `nil`, which
-    scans for the first non-Neovim pane on each send. Set a pane id (e.g.
+    scans the panes on each send: it prefers one that looks like an agent
+    (see `agents`), otherwise the first non-Neovim pane. Set a pane id (e.g.
     `"%2"`) to pin one; |:PromptTmuxPane| overrides it for the current
     session.
+
+agents                                                   *prompt-send.agents*
+    Names used to spot an agent pane when `pane` is `nil`. Each pane's
+    `pane_current_command` and `pane_title` are matched against this list,
+    first match wins. If nothing matches, the first non-Neovim pane is used.
+    Set `agents = {}` for that older behavior.
 
 enter                                                     *prompt-send.enter*
     Whether the built-in tmux sender appends `Enter`. Ignored when `send`
