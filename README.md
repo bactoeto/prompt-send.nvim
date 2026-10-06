@@ -29,9 +29,8 @@ the references, edit, and send. But that's enough, isn't it?
 
 ## Features
 
-- `:PromptSend` — resolve `@references` and send the prompt
-- `:PromptTmuxPane` — choose the tmux pane that receives prompts
-- Built-in `@buffer`, `@file`, `@select`, `@diagnostic`, `@gitdiff`, `@N`
+- Built-in `@buffer`, `@file`, `@select`, `@diagnostic`, `@gitdiff`, `@N`,
+  plus your own references
 - `@` completion; works from Visual mode
 - Sends to a tmux pane, a Neovim `:terminal` buffer, or any command
 
@@ -75,6 +74,12 @@ require('prompt-send').setup({
     -- send = function(prompt) ... end, -- or build the argv yourself
 })
 ```
+
+## Commands
+
+- `:PromptSend {prompt}` — send a prompt, resolving `@references`
+- `:PromptTmuxPane [pane]` — choose or pin the tmux pane
+- `:PromptTerminal [name]` — choose or pin the Neovim terminal
 
 ## References
 
