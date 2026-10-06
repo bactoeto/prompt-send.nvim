@@ -19,6 +19,7 @@ SETUP                                                    *prompt-send.setup*
       send       = nil,   -- nil = built-in tmux sender
       enter      = true,  -- append Enter to the tmux sender
       stdin      = false, -- pass prompt via stdin (string send only)
+      pane       = nil,   -- tmux pane to send to; nil = auto-scan
       references = {},    -- add or override @references
   })
 <
@@ -42,6 +43,12 @@ send                                                       *prompt-send.send*
 <
     `pane` is the pane pinned with |:PromptTmuxPane|, or the first tmux
     pane that is not Neovim (found by scanning "tmux list-panes -a").
+
+pane                                                       *prompt-send.pane*
+    Which tmux pane the built-in sender types into. Defaults to `nil`, which
+    scans for the first non-Neovim pane on each send. Set a pane id (e.g.
+    `"%2"`) to pin one; |:PromptTmuxPane| overrides it for the current
+    session.
 
 enter                                                     *prompt-send.enter*
     Whether the built-in tmux sender appends `Enter`. Ignored when `send`

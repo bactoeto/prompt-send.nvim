@@ -57,6 +57,7 @@ require('prompt-send').setup({
     send = nil,             -- nil = built-in tmux sender (see below)
     enter = true,           -- append Enter to the tmux sender
     stdin = false,          -- pass prompt via stdin
+    pane = nil,             -- tmux pane to send to; nil = auto-scan
     references = {},        -- add or override @reference
 })
 ```
@@ -102,6 +103,18 @@ string form is split on whitespace and never invokes a shell; use the
 function form for arguments containing spaces or for computed argv (for
 example JSON-encoding the prompt for an HTTP API), or a wrapper script for
 anything more complex (pipes, redirection, `sh -c`).
+
+### `pane`
+
+Which tmux pane the built-in sender types into. Defaults to `nil`, which
+scans for the first non-Neovim pane on each send. Set it to a pane id to pin
+one from the start — it lives in your config, so it survives restarts:
+
+```lua
+require('prompt-send').setup({ pane = '%2' })
+```
+
+`:PromptTmuxPane` still overrides it for the current session.
 
 ### `enter`
 

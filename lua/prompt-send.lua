@@ -11,7 +11,7 @@ M.config = {
   enter = true,
   stdin = false,       -- pass prompt via stdin instead of as the last arg
   references = {},
-  _tmux_pane = nil,
+  pane = nil,          -- tmux pane to send to; nil / "auto" = scan
 }
 
 -- ── Default References ─────────────────────────────────────────────────────
@@ -160,10 +160,10 @@ local function prompt_tmux_pane()
   }, function(choice)
     if choice == nil then return end
     if choice.id == nil then
-      M.config._tmux_pane = nil
+      M.config.pane = nil
       vim.notify("prompt-send.nvim: tmux pane set to auto")
     else
-      M.config._tmux_pane = choice.id
+      M.config.pane = choice.id
       vim.notify("prompt-send.nvim: tmux pane set to " .. choice.id)
     end
   end)
@@ -176,7 +176,7 @@ end
 --- @param prompt string
 --- @return string[]
 local function tmux_argv(prompt)
-  local pane = M.config._tmux_pane or find_first_non_nvim_pane()
+  local pane = M.config.pane or find_first_non_nvim_pane()
   if not pane then
     error("no non-neovim tmux pane found")
   end
@@ -336,7 +336,7 @@ function M.target()
   if M.config.send ~= nil then
     return "command"
   end
-  return M.config._tmux_pane or "auto"
+  return M.config.pane or "auto"
 end
 
 -- ── Setup ──────────────────────────────────────────────────────────────────
@@ -347,6 +347,9 @@ function M.setup(opts)
   if opts.enter ~= nil then M.config.enter = opts.enter end
   if opts.stdin ~= nil then M.config.stdin = opts.stdin end
   if opts.references ~= nil then M.config.references = opts.references end
+  if opts.pane ~= nil then
+    M.config.pane = (opts.pane ~= "auto") and opts.pane or nil
+  end
 
   vim.api.nvim_create_user_command("PromptSend", function(args)
     local prompt = args.args
@@ -369,9 +372,9 @@ function M.setup(opts)
       return
     end
     if arg == "auto" then
-      M.config._tmux_pane = nil
+      M.config.pane = nil
     else
-      M.config._tmux_pane = arg
+      M.config.pane = arg
     end
     vim.notify("prompt-send.nvim: tmux pane set to " .. arg)
   end, {
