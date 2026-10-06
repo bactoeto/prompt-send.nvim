@@ -12,6 +12,23 @@ Notes for agents working on this repo.
 
 - `prompt-send.nvim` — a single-file Neovim plugin. Module: `lua/prompt-send.lua`
   (`require('prompt-send')`).
-- Docs live in `README.md` (short quickstart) and `doc/prompt-send.txt`
-  (`:help prompt-send`). When behavior changes, update the docs too.
 - Tests: `make test` (`nvim --headless`, no deps). CI runs it on push.
+
+## Docs
+
+Decide the structure first, then fill it; put each fact in the section it
+belongs to — no stray notes. Two docs, two jobs:
+
+- `README.md` — quickstart (what it is, install, basic usage). Keep it lean.
+- `doc/prompt-send.txt` — full reference (`:help prompt-send`).
+
+Do not duplicate detail between them.
+
+Sections, in order:
+
+- README: title · one-liner · Why · Features · Requirements · Installation ·
+  Usage · Commands · References · Help · Development
+- help: header · SETUP (defaults block + one section per option) · COMMANDS ·
+  REFERENCES · API · STATUSLINE · RECIPES
+
+When behavior changes, update the docs and check for stale wording.
