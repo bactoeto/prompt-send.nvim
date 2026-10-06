@@ -97,7 +97,9 @@ COMMANDS
     :'<,'>PromptSend explain @select
     :PromptSend what is wrong here: @select @diagnostic
 <
-    Typing `@` completes reference names. Unknown @names are left as-is.
+    Typing `@` completes reference names. `@@` escapes an `@` — `@@buffer`
+    is sent as the literal `@buffer`. Unknown @names are left as-is, but if
+    a known reference fails, nothing is sent and the error is shown.
 
 :PromptTmuxPane [pane]                                *:PromptTmuxPane*
 

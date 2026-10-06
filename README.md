@@ -190,7 +190,9 @@ before sending.
 - Can be invoked from Visual mode; the leading `'<,'>` is handled for you.
 - Typing `@` completes reference names, replacing only the current `@token`
   without touching the rest of the prompt.
-- Unknown `@name` is left as-is.
+- `@@` escapes an `@`: `@@buffer` is sent literally as `@buffer`.
+- Unknown `@name` is left as-is, but if a known reference fails (its function
+  errors), nothing is sent — the error is shown instead.
 
 ### `:PromptTmuxPane [pane]`
 

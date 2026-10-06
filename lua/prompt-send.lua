@@ -118,21 +118,32 @@ local function build_refs()
   return refs
 end
 
+--- Resolve @references in a prompt. `@@` yields a literal `@`.
+--- @param prompt string
+--- @return string resolved
+--- @return string[] errors  one entry per @reference that failed
 local function resolve_prompt(prompt)
   local refs = build_refs()
-  return (prompt:gsub("@([%w_]+)", function(name)
+  local errors = {}
+  local ESCAPE = "\1"   -- stands in for an escaped "@"
+
+  local resolved = prompt:gsub("@@", ESCAPE)
+  resolved = resolved:gsub("@([%w_]+)", function(name)
     local fn = refs[name]
-    if fn then
-      local ok, result = pcall(fn)
-      if ok and result then
-        return result
-      else
-        return string.format("@%s (error: %s)", name, tostring(result))
-      end
-    else
+    if fn == nil then
+      return "@" .. name   -- unknown names are left as-is
+    end
+    local ok, result = pcall(fn)
+    if not ok or result == nil then
+      table.insert(errors,
+        string.format("@%s: %s", name, ok and "returned nil" or tostring(result)))
       return "@" .. name
     end
-  end))
+    return tostring(result)
+  end)
+  resolved = resolved:gsub(ESCAPE, "@")
+
+  return resolved, errors
 end
 
 -- ── Tmux Pane Selection ────────────────────────────────────────────────────
@@ -397,7 +408,12 @@ function M.setup(opts)
       vim.notify("prompt-send.nvim: empty prompt", vim.log.levels.WARN)
       return
     end
-    external_send(resolve_prompt(prompt))
+    local resolved, errors = resolve_prompt(prompt)
+    if #errors > 0 then
+      vim.notify("prompt-send.nvim: " .. table.concat(errors, "; "), vim.log.levels.ERROR)
+      return   -- do not send a prompt with a broken reference
+    end
+    external_send(resolved)
   end, {
     nargs = "+",
     range = true,
