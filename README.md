@@ -25,7 +25,7 @@ the references, edit, and send. But that's enough, isn't it?
 
 ## Installation
 
-Neovim 0.10+.
+Neovim 0.7+ (developed on 0.12).
 
 vim.pack (Neovim 0.12+):
 

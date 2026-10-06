@@ -90,6 +90,10 @@ function default_refs.gitdiff()
   return table.concat(out, "\n")
 end
 
+--- LSP severities (1..4). Kept local so we do not depend on the reverse
+--- lookup of `vim.diagnostic.severity`, which older Neovim versions lack.
+local DIAG_SEVERITY = { [1] = "ERROR", [2] = "WARN", [3] = "INFO", [4] = "HINT" }
+
 --- @diagnostic : LSP diagnostics for current buffer
 function default_refs.diagnostic()
   local diags = vim.diagnostic.get(0)
@@ -98,7 +102,7 @@ function default_refs.diagnostic()
   end
   local lines = {}
   for _, d in ipairs(diags) do
-    local sev = vim.diagnostic.severity[d.severity] or "UNKNOWN"
+    local sev = DIAG_SEVERITY[d.severity] or "UNKNOWN"
     table.insert(lines, string.format("[%s] %s (line %d)", sev, d.message, d.lnum + 1))
   end
   return table.concat(lines, "\n")
