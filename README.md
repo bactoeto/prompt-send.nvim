@@ -69,21 +69,12 @@ first non-Neovim pane. Pin one, or send somewhere else entirely:
 
 ```lua
 require('prompt-send').setup({
-    pane = '%3',                        -- always send to this tmux pane
-    -- send = 'terminal',               -- or into a Neovim :terminal buffer
-    -- send = 'opencode run',           -- or run any command
+    pane = '%3',                        -- a tmux pane (default: auto-scan)
+    -- send = 'terminal',               -- a Neovim :terminal buffer
+    -- send = 'opencode run',           -- any command
     -- send = function(prompt) ... end, -- or build the argv yourself
 })
 ```
-
-`send = 'terminal'` writes straight into a Neovim `:terminal` buffer — handy
-when the target (e.g. an agent) runs inside Neovim rather than tmux:
-
-```lua
-require('prompt-send').setup({ send = 'terminal' })
-```
-
-Pin a specific terminal with `:PromptTerminal`.
 
 ## References
 
