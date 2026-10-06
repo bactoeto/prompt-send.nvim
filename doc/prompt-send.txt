@@ -48,8 +48,8 @@ send                                                       *prompt-send.send*
           return { 'tmux', 'send-keys', '-t', pane, prompt, 'Enter' }
       end
 <
-    `pane` is the pane pinned with |:PromptTmuxPane|, or the first tmux
-    pane that is not Neovim (found by scanning "tmux list-panes -a").
+    The target pane is the one pinned with |:PromptTmuxPane| or, by default,
+    the auto-scan — see |prompt-send.pane| and |prompt-send.agents|.
 
 pane                                                       *prompt-send.pane*
 
