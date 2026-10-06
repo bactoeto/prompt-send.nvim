@@ -10,12 +10,9 @@ prompt to a tmux pane or an external CLI.
 
 ## Why
 
-I live in Neovim, and I got tired of copying pieces of it into whatever else
-wants my prompts. So this takes what you type on the `:` command line,
-substitutes the Neovim bits you reference (`@buffer`, `@select`, `@diagnostic`,
-or your own), and hands the result to whatever is already running — a tmux
-pane, a CLI, an HTTP endpoint. It doesn't wait for a reply, and it doesn't care
-which tool is on the other end. One file, no dependencies.
+When I'm coding in Neovim, I often wish the agent could just see what's in my
+buffer. That's all this plugin does. It's crude: a single file, you hand-write
+the references, edit, and send. But that's enough, isn't it?
 
 ## Features
 
