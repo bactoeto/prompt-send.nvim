@@ -108,7 +108,7 @@ COMMANDS
 :PromptTmuxPane [pane]                                *:PromptTmuxPane*
 
     No argument  open a picker listing the panes.
-    `auto`       scan on each send and pick the first non-Neovim pane.
+    `auto`       prefer an agent pane, else the first non-Neovim pane.
     A pane id    always send there, e.g. `%0`.
 
     The argument completes: type `:PromptTmuxPane ` and press <Tab>.

@@ -194,7 +194,7 @@ local function prompt_tmux_pane()
     return
   end
 
-  local items = { { id = nil, cmd = "auto (scan for first non-neovim pane)" } }
+  local items = { { id = nil, cmd = "auto (prefer an agent pane)" } }
   for _, p in ipairs(panes) do
     table.insert(items, p)
   end

@@ -204,7 +204,8 @@ before sending.
 Choose the tmux pane that receives prompts.
 
 - No argument — open a picker listing the panes.
-- `auto` — scan on each send and pick the first non-Neovim pane (default).
+- `auto` — prefer a pane matching `agents`, else the first non-Neovim pane
+  (default).
 - A pane id, e.g. `%0` — always send there.
 
 The argument completes: type `:PromptTmuxPane ` and press `<Tab>` to list
@@ -218,7 +219,7 @@ in-memory state, so it is safe to call on every redraw:
 | Value | Meaning |
 |-------|---------|
 | a pane id, e.g. `%0` | pinned with `:PromptTmuxPane` |
-| `auto` | scan for the first non-Neovim pane on each send |
+| `auto` | prefer an agent pane, else the first non-Neovim pane, on each send |
 | `command` | a custom `send` is configured |
 
 For example, with mini.statusline. `content.active` is all-or-nothing, so
