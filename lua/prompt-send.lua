@@ -31,6 +31,10 @@ M.config = {
 -- Terminal buffer pinned with :PromptTerminal (deliberately not a setup option).
 local terminal_buf = nil
 
+-- Set when `setup` is rejected. Keeps a bad `via` from falling back to the
+-- default tmux target and sending anyway.
+local disabled = false
+
 -- ── Default References ─────────────────────────────────────────────────────
 
 local default_refs = {}
@@ -440,6 +444,11 @@ end
 
 --- Send through the method chosen by `via`.
 local function external_send(text)
+  if disabled then
+    vim.notify("prompt-send.nvim: via is invalid; not sending",
+      vim.log.levels.ERROR)
+    return
+  end
   local via = M.config.via
   if via == "tmux" then
     return tmux_send(text)
@@ -516,92 +525,23 @@ end
 
 -- ── Setup ──────────────────────────────────────────────────────────────────
 
---- Check a `setup` options table, returning a list of problems.
-local function validate_setup(opts)
-  local errs = {}
-  local function err(fmt, ...)
-    table.insert(errs, string.format(fmt, ...))
-  end
-
-  for k in pairs(opts) do
-    if not vim.tbl_contains(
-      { "via", "tmux", "terminal", "command", "agents", "references" }, k) then
-      err("unknown option %q", tostring(k))
-    end
-  end
-
-  if opts.via ~= nil
-      and not vim.tbl_contains({ "tmux", "terminal", "command" }, opts.via) then
-    err("via: expected 'tmux', 'terminal' or 'command', got %s", vim.inspect(opts.via))
-  end
-
-  local nested = {
-    tmux = { "pane", "enter" },
-    terminal = { "enter" },
-    command = { "run", "stdin" },
-  }
-  for name, allowed in pairs(nested) do
-    local t = opts[name]
-    if t ~= nil and type(t) ~= "table" then
-      err("%s: expected a table, got %s", name, type(t))
-    elseif type(t) == "table" then
-      for k in pairs(t) do
-        if not vim.tbl_contains(allowed, k) then
-          err("%s: unknown option %q", name, tostring(k))
-        end
-      end
-    end
-  end
-
-  local function want_bool(tbl, key, where)
-    if type(tbl) == "table" and tbl[key] ~= nil and type(tbl[key]) ~= "boolean" then
-      err("%s.%s: expected a boolean", where, key)
-    end
-  end
-  want_bool(opts.tmux, "enter", "tmux")
-  want_bool(opts.terminal, "enter", "terminal")
-  want_bool(opts.command, "stdin", "command")
-
-  if type(opts.tmux) == "table" and opts.tmux.pane ~= nil
-      and type(opts.tmux.pane) ~= "string" then
-    err("tmux.pane: expected a string (a pane id) or nil")
-  end
-  if type(opts.command) == "table" and opts.command.run ~= nil
-      and type(opts.command.run) ~= "string"
-      and type(opts.command.run) ~= "function" then
-    err("command.run: expected a string, a function, or nil")
-  end
-  if opts.agents ~= nil and type(opts.agents) ~= "table" then
-    err("agents: expected a table")
-  elseif type(opts.agents) == "table" then
-    for i, name in ipairs(opts.agents) do
-      if type(name) ~= "string" then
-        err("agents[%d]: expected a string, got %s", i, type(name))
-      end
-    end
-  end
-  if opts.references ~= nil and type(opts.references) ~= "table" then
-    err("references: expected a table")
-  elseif type(opts.references) == "table" then
-    for name, fn in pairs(opts.references) do
-      if type(name) ~= "string" then
-        err("references: keys must be strings, got %s", type(name))
-      elseif type(fn) ~= "function" then
-        err("references[%s]: expected a function, got %s", name, type(fn))
-      end
-    end
-  end
-
-  return errs
-end
-
 function M.setup(opts)
   opts = opts or {}
-  local errs = validate_setup(opts)
-  if #errs > 0 then
-    vim.notify("prompt-send.nvim: " .. table.concat(errs, "; "), vim.log.levels.ERROR)
+
+  -- The only checked option: a bad `via` would otherwise leave the default
+  -- tmux target in place and send prompts somewhere unintended. Reject it and
+  -- refuse to send until a later `setup` succeeds.
+  if opts.via ~= nil
+      and not vim.tbl_contains({ "tmux", "terminal", "command" }, opts.via) then
+    disabled = true
+    vim.notify(
+      ("prompt-send.nvim: via: expected 'tmux', 'terminal' or 'command', got %s")
+        :format(vim.inspect(opts.via)),
+      vim.log.levels.ERROR)
     return
   end
+  disabled = false
+
   if opts.via ~= nil then M.config.via = opts.via end
   if opts.references ~= nil then M.config.references = opts.references end
   if opts.agents ~= nil then M.config.agents = opts.agents end

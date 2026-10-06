@@ -29,7 +29,8 @@ SETUP                                                      *prompt-send.setup*
   })
 <
 All keys are optional. Requiring the module already applies these defaults.
-Unknown options, wrong types, and a bad `via` are reported as errors.
+A bad `via` is reported as an error; the plugin then refuses to send.
+Nothing else is validated.
 
 via                                                          *prompt-send.via*
 

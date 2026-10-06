@@ -91,24 +91,24 @@ do
     'notes=' .. vim.inspect(n))
 end
 
--- -- bad setup options ---------------------------------------------------------
+-- -- a bad `via` is reported and blocks sending --------------------------------
 
 do
-  local cases = {
-    { 'unknown top-level option', { enetr = true } },
-    { 'unknown nested option', { tmux = { nope = 1 } } },
-    { 'bad via value', { via = 'bogus' } },
-    { 'wrong option type', { tmux = { enter = 'yes' } } },
-    { 'wrong command.run type', { command = { run = 42 } } },
-    { 'non-string agent', { agents = { 1 } } },
-    { 'non-function reference', { references = { foo = 'bar' } } },
-    { 'non-string reference name', { references = { [1] = function() end } } },
-  }
-  for _, c in ipairs(cases) do
-    notes = {}
-    prompt.setup(c[2])
-    check('reject: ' .. c[1], #notes > 0, 'notes=' .. vim.inspect(notes))
+  notes = {}
+  prompt.setup({ via = 'bogus' })
+  check('bad via is reported at setup', #notes > 0, 'notes=' .. vim.inspect(notes))
+
+  -- each send attempt is refused and reports once
+  for i = 1, 2 do
+    sent, notes = nil, {}
+    vim.cmd('PromptSend hi')
+    eq('bad via: attempt ' .. i .. ' sends nothing', sent, nil)
+    check('bad via: attempt ' .. i .. ' reports', #notes > 0,
+      'notes=' .. vim.inspect(notes))
   end
+
+  -- unknown options are not validated: a good setup recovers and sends
+  eq('unknown option is ignored', resolve('hi', { nope = 1 }), 'hi')
 end
 
 -- -- setup stores options ----------------------------------------------------
