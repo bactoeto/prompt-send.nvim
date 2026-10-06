@@ -19,7 +19,7 @@ the references, edit, and send. But that's enough, isn't it?
 - `:PromptTmuxPane` — choose the tmux pane that receives prompts
 - Built-in `@buffer`, `@file`, `@select`, `@diagnostic`, `@gitdiff`, `@n`
 - `@` completion; works from Visual mode
-- Sends through tmux by default, or any command / HTTP endpoint
+- Sends through tmux by default, or any command you configure
 
 ## Requirements
 
