@@ -1,4 +1,4 @@
-*prompt-send.nvim*                                          *prompt-send*
+*prompt-send.nvim* *prompt-send*  Send prompts with @references
 
 Write prompts in Neovim's `:` command line, reference Neovim content with
 `@reference`, and send the resolved prompt to a tmux pane or any command.
@@ -13,7 +13,7 @@ directed and reviewed it. Treat it accordingly.
 - @reference completion; works directly from Visual mode.
 
 ==============================================================================
-SETUP                                                    *prompt-send.setup*
+SETUP                                                      *prompt-send.setup*
 
 >lua
   require('prompt-send').setup({
@@ -28,7 +28,7 @@ SETUP                                                    *prompt-send.setup*
 <
 All keys are optional. Requiring the module already applies these defaults.
 
-send                                                       *prompt-send.send*
+send                                                        *prompt-send.send*
 
     A string or function used to send the resolved prompt.
 
@@ -57,7 +57,7 @@ send                                                       *prompt-send.send*
     The target pane is the one pinned with |:PromptTmuxPane| or, by default,
     the auto-scan — see |prompt-send.pane| and |prompt-send.agents|.
 
-pane                                                       *prompt-send.pane*
+pane                                                        *prompt-send.pane*
 
     Which tmux pane the built-in sender types into. Defaults to `nil`, which
     scans the panes on each send: it prefers one that looks like an agent
@@ -65,25 +65,25 @@ pane                                                       *prompt-send.pane*
     `"%2"`) to pin one; |:PromptTmuxPane| overrides it for the current
     session.
 
-agents                                                   *prompt-send.agents*
+agents                                                    *prompt-send.agents*
 
     Names used to spot an agent pane when `pane` is `nil`. Each pane's
     `pane_current_command` and `pane_title` are matched against this list,
     first match wins. If nothing matches, the first non-Neovim pane is used.
     Set `agents = {}` for that older behavior.
 
-enter                                                     *prompt-send.enter*
+enter                                                      *prompt-send.enter*
 
     Whether the built-in tmux sender appends `Enter`. Ignored when `send`
     is set.
 
-stdin                                                     *prompt-send.stdin*
+stdin                                                      *prompt-send.stdin*
 
     How the prompt is passed when `send` is a string. `true` writes it to
     the command's stdin and closes it; `false` appends it as the last
     argument. Ignored for a function `send` and the built-in tmux sender.
 
-references                                           *prompt-send.references*
+references                                            *prompt-send.references*
 
     Table mapping a name to a function with no arguments that returns a
     string. Merged over the built-in references; same name overrides.
@@ -103,7 +103,7 @@ references                                           *prompt-send.references*
 ==============================================================================
 COMMANDS
 
-:PromptSend {prompt}                                     *:PromptSend*
+:PromptSend {prompt}                                             *:PromptSend*
 
     Send a prompt, replacing every @reference first. Works from Visual
     mode; the leading `'<,'>` is handled for you.
@@ -118,7 +118,7 @@ COMMANDS
     |prompt-send-@N|). Unknown @names are left as-is, but if a known
     reference fails, nothing is sent and the error is shown.
 
-:PromptTmuxPane [pane]                                *:PromptTmuxPane*
+:PromptTmuxPane [pane]                                       *:PromptTmuxPane*
 
     No argument  open a picker listing the panes.
     `auto`       prefer an agent pane, else the first non-Neovim pane.
@@ -126,7 +126,7 @@ COMMANDS
 
     The argument completes: type `:PromptTmuxPane ` and press <Tab>.
 
-:PromptTerminal [name]                              *:PromptTerminal*
+:PromptTerminal [name]                                       *:PromptTerminal*
 
     Choose the Neovim |:terminal| buffer used by `send = 'terminal'`.
 
@@ -137,28 +137,28 @@ COMMANDS
 ==============================================================================
 REFERENCES
 
-@buffer                                                 *prompt-send-@buffer*
+@buffer                                                  *prompt-send-@buffer*
 
     Current buffer content.
 
-@file                                                     *prompt-send-@file*
+@file                                                      *prompt-send-@file*
 
     Current buffer's path, relative to the working directory.
 
-@select                                                 *prompt-send-@select*
+@select                                                  *prompt-send-@select*
 
     Last Visual selection, read from the |'<| and |'>| marks (no need to
     re-enter Visual mode). Supports char, line, and block selections.
 
-@diagnostic                                         *prompt-send-@diagnostic*
+@diagnostic                                          *prompt-send-@diagnostic*
 
     LSP diagnostics of the current buffer.
 
-@gitdiff                                             *prompt-send-@gitdiff*
+@gitdiff                                                *prompt-send-@gitdiff*
 
     Unstaged changes in the repository ("git diff --no-color").
 
-@N                                                           *prompt-send-@N*
+@N                                                            *prompt-send-@N*
 
     A literal newline. `@N` is self-delimiting, so it works right next to
     text: `a@Nb` gives `a` and `b` on separate lines. Capital `N` is
@@ -168,7 +168,7 @@ REFERENCES
 ==============================================================================
 API
 
-prompt-send.target()                              *prompt-send.target()*
+prompt-send.target()                                    *prompt-send.target()*
 
     Returns where prompts will go: a pane id (e.g. `"%0"`), `"auto"`,
     `"terminal"` for the Neovim-terminal sender, or `"command"` when a
