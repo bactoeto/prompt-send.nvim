@@ -9,8 +9,7 @@ editor via `@references`, and send the result to a tmux pane or any command.
 
 ## Example
 
-Your agent runs in a tmux pane. Send it what you're looking at, without
-leaving Neovim:
+Send a prompt made of what you're looking at, without leaving Neovim:
 
 ```vim
 :PromptSend review my changes: @gitdiff
@@ -18,8 +17,9 @@ leaving Neovim:
 ```
 
 Each `@...` is replaced with the real editor content — the diff, the
-selection, the diagnostics — and the resolved prompt is typed into the pane.
-For the Visual-mode flow, bind a key:
+selection, the diagnostics — before the prompt is sent. The default target is
+a tmux pane; a custom `send` can run any command instead. Bind a key for the
+Visual-mode flow:
 
 ```lua
 vim.keymap.set('v', '<leader>sp', ':PromptSend ')
