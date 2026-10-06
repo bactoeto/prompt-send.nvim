@@ -57,10 +57,11 @@ one, or send somewhere else entirely:
 
 ```lua
 require('prompt-send').setup({
-    pane = '%3',                        -- a tmux pane (default: auto-scan)
-    -- send = 'terminal',               -- a Neovim :terminal buffer
-    -- send = 'opencode run',           -- any command
-    -- send = function(prompt) ... end, -- or build the argv yourself
+    via = 'tmux',                        -- 'tmux' | 'terminal' | 'command'
+
+    tmux     = { pane = '%3' },          -- tmux: pin a pane (default: scan)
+    terminal = { enter = true },         -- terminal: options
+    command  = { run = 'opencode run' }, -- command: what to run
 })
 ```
 
@@ -86,8 +87,8 @@ require('prompt-send').setup({
 
 ## Help
 
-Everything else — every option, the two `send` forms, the statusline API, and
-a couple of recipes — is in `:help prompt-send`.
+Everything else — every option, the `command.run` forms, the statusline API,
+and a couple of recipes — is in `:help prompt-send`.
 
 ## Development
 

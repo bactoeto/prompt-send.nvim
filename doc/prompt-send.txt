@@ -17,53 +17,59 @@ SETUP                                                      *prompt-send.setup*
 
 >lua
   require('prompt-send').setup({
-      send       = nil,   -- nil = tmux sender; 'terminal' = Neovim terminal
-      enter      = true,  -- append Enter to the tmux sender
-      stdin      = false, -- pass prompt via stdin (string send only)
-      pane       = nil,   -- tmux pane to send to; nil = auto-scan
+      via = 'tmux',       -- 'tmux' | 'terminal' | 'command'
+
+      tmux     = { pane = nil, enter = true },
+      terminal = { enter = true },
+      command  = { run = nil, stdin = false },
+
       agents     = { 'opencode', 'claude', 'codex', 'aider', 'gemini',
                      'crush', 'goose', 'cursor-agent', 'openhands' },
-      references = {},    -- add or override @references
+      references = {},
   })
 <
 All keys are optional. Requiring the module already applies these defaults.
 
-send                                                        *prompt-send.send*
+via                                                          *prompt-send.via*
 
-    How the prompt is sent. One of:
+    Which method sends the prompt: `'tmux'` (default), `'terminal'`, or
+    `'command'`. Each has its own table below.
 
-    - `nil` (default)  the built-in tmux sender (see |prompt-send.pane|)
-    - a string         a command, split on whitespace into argv (no shell)
-    - a function       called with the resolved prompt; returns a string or
-                       argv to run, with the prompt already placed
-    - `'terminal'`     write into a Neovim |:terminal| buffer
+tmux                                                        *prompt-send.tmux*
 
-    stdout is discarded; a non-zero exit shows the command's stderr as an
-    error notification. Success is silent — no reply is read.
+    Options for the tmux sender.
 
-pane                                                        *prompt-send.pane*
+    pane   Which pane to type into. `nil` (default) picks one on each send
+           (see |prompt-send.agents|); a pane id like `"%2"` pins one.
+           |:PromptTmuxPane| overrides it for the current session.
+    enter  Append `Enter` (default `true`).
 
-    Which tmux pane the built-in sender types into. `nil` (default) picks one
-    on each send — see |prompt-send.agents|. Set a pane id (e.g. `"%2"`) to
-    pin one; |:PromptTmuxPane| overrides it for the current session.
+terminal                                                *prompt-send.terminal*
+
+    Options for the Neovim-terminal sender.
+
+    enter  Append a newline (default `true`). Pick the buffer with
+           |:PromptTerminal|.
+
+command                                                  *prompt-send.command*
+
+    Options for the command sender.
+
+    run    The command to run: a string, split on whitespace into argv (no
+           shell), or a function called with the resolved prompt that
+           returns a string or argv. `nil` by default, so set it.
+    stdin  When `run` is a string: `true` writes the prompt to stdin and
+           closes it, `false` (default) appends it as the last argument.
+
+    Its stdout is discarded; a non-zero exit shows the stderr as an error
+    notification. Success is silent — no reply is read.
 
 agents                                                    *prompt-send.agents*
 
-    How the built-in sender picks a pane when `pane` is `nil`: each pane's
+    How the tmux sender picks a pane when `pane` is `nil`: each pane's
     `pane_current_command` and `pane_title` are matched against this list,
     first match wins, and if nothing matches it uses the first non-Neovim
     pane. Set `agents = {}` to skip the name match.
-
-enter                                                      *prompt-send.enter*
-
-    Whether the built-in tmux sender appends `Enter`. Ignored when `send`
-    is set.
-
-stdin                                                      *prompt-send.stdin*
-
-    How the prompt is passed when `send` is a string: `true` writes it to the
-    command's stdin and closes it, `false` appends it as the last argument.
-    Ignored for the other forms.
 
 references                                            *prompt-send.references*
 
@@ -110,7 +116,7 @@ COMMANDS
 
 :PromptTerminal [name]                                       *:PromptTerminal*
 
-    Choose the Neovim |:terminal| buffer used by `send = 'terminal'`.
+    Choose the Neovim |:terminal| buffer used by the terminal sender.
 
     No argument  open a picker listing the terminal buffers.
     `auto`       pick one matching `agents`, else the most recent.
@@ -152,10 +158,9 @@ API
 
 prompt-send.target()                                    *prompt-send.target()*
 
-    Returns where prompts will go: a pane id (e.g. `"%0"`), `"auto"`,
-    `"terminal"` for the Neovim-terminal sender, or `"command"` when a
-    custom `send` is configured. It only reads in-memory state, so it is
-    cheap enough for a statusline.
+    Returns where prompts will go: a pane id (e.g. `"%0"`) or `"auto"` for
+    the tmux sender, `"terminal"`, or `"command"`. It only reads in-memory
+    state, so it is cheap enough for a statusline.
 
 >lua
     'send:' .. require('prompt-send').target()
@@ -202,20 +207,23 @@ RECIPES
 Send to a running opencode session
 
     opencode's `api` subcommand handles service discovery and auth, so there
-    is no shell or wrapper to write. Use a function `send` so the prompt is
-    JSON-encoded:
+    is no shell or wrapper to write. Use a function `command.run` so the
+    prompt is JSON-encoded:
 
 >lua
       local session = vim.env.OPENCODE_SESSION   -- e.g. 'ses_...'
 
       require('prompt-send').setup({
-          send = function(prompt)
-              return {
-                  'opencode', 'api', 'post',
-                  '/api/session/' .. session .. '/prompt',
-                  '--data', vim.json.encode({ text = prompt }),
-              }
-          end,
+          via = 'command',
+          command = {
+              run = function(prompt)
+                  return {
+                      'opencode', 'api', 'post',
+                      '/api/session/' .. session .. '/prompt',
+                      '--data', vim.json.encode({ text = prompt }),
+                  }
+              end,
+          },
       })
 <
     Get a session id with `opencode session list`, then start Neovim with

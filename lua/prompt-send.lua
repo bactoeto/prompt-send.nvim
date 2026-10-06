@@ -7,11 +7,21 @@ local M = {}
 -- ── Configuration ──────────────────────────────────────────────────────────
 
 M.config = {
-  send = nil,          -- string | fun(prompt): string|string[]
-  enter = true,
-  stdin = false,       -- pass prompt via stdin instead of as the last arg
+  via = "tmux",        -- "tmux" | "terminal" | "command"
   references = {},
-  pane = nil,          -- tmux pane to send to; nil / "auto" = scan
+
+  tmux = {
+    pane = nil,        -- "%2" | nil (pick per send)
+    enter = true,      -- append Enter
+  },
+  terminal = {
+    enter = true,      -- append a newline
+  },
+  command = {
+    run = nil,         -- string | fun(prompt): string|string[]
+    stdin = false,     -- pass prompt via stdin instead of as the last arg
+  },
+
   agents = {           -- names matched against pane command + title
     "opencode", "claude", "codex", "aider", "gemini", "crush", "goose",
     "cursor-agent", "openhands",
@@ -215,10 +225,10 @@ local function prompt_tmux_pane()
   }, function(choice)
     if choice == nil then return end
     if choice.id == nil then
-      M.config.pane = nil
+      M.config.tmux.pane = nil
       vim.notify("prompt-send.nvim: tmux pane set to auto")
     else
-      M.config.pane = choice.id
+      M.config.tmux.pane = choice.id
       vim.notify("prompt-send.nvim: tmux pane set to " .. choice.id)
     end
   end)
@@ -226,20 +236,86 @@ end
 
 -- ── Sending ────────────────────────────────────────────────────────────────
 
---- Default `send`: type the prompt into a tmux pane. Just a function, like
---- any user-supplied `send`; it returns the argv to run.
---- @param prompt string
---- @return string[]
-local function tmux_argv(prompt)
-  local pane = M.config.pane or find_default_pane()
-  if not pane then
-    error("no non-neovim tmux pane found")
+--- Report a failed send. `detail` is the command's captured stderr.
+local function notify_failure(detail, code)
+  detail = vim.trim(detail or "")
+  if detail == "" then
+    detail = string.format("exited with code %d", code)
   end
-  local argv = { "tmux", "send-keys", "-t", pane, prompt }
-  if M.config.enter then
-    table.insert(argv, "Enter")
+  vim.notify("prompt-send.nvim: " .. detail, vim.log.levels.ERROR)
+end
+
+--- Build jobstart options that collect stderr and report it on failure.
+local function job_opts(use_stdin)
+  local stderr_lines = {}
+  return {
+    stdin = use_stdin and "pipe" or "null",
+    stderr_buffered = true,
+    on_stderr = function(_, data)
+      if type(data) ~= "table" then
+        return
+      end
+      for _, line in ipairs(data) do
+        if line ~= "" then
+          table.insert(stderr_lines, line)
+        end
+      end
+    end,
+    on_exit = function(_, code)
+      if code ~= 0 then
+        notify_failure(table.concat(stderr_lines, "\n"), code)
+      end
+    end,
+  }
+end
+
+--- Turn a command spec into an argv list. A spec is a string (split on
+--- whitespace) or an argv table.
+--- @param spec string|string[]
+--- @return string[]
+local function to_argv(spec)
+  local argv = {}
+  if type(spec) == "table" then
+    for _, v in ipairs(spec) do
+      table.insert(argv, tostring(v))
+    end
+  elseif type(spec) == "string" then
+    for word in spec:gmatch("%S+") do
+      table.insert(argv, word)
+    end
   end
   return argv
+end
+
+--- Run a command. A non-zero exit reports its stderr.
+local function run_job(argv, text, use_stdin)
+  if #argv == 0 then
+    vim.notify("prompt-send.nvim: empty command", vim.log.levels.ERROR)
+    return
+  end
+  local started, job = pcall(vim.fn.jobstart, argv, job_opts(use_stdin))
+  if not started or job <= 0 then
+    vim.notify("prompt-send.nvim: failed to start command", vim.log.levels.ERROR)
+    return
+  end
+  if use_stdin then
+    vim.fn.chansend(job, text)
+    vim.fn.chanclose(job, "stdin")
+  end
+end
+
+--- tmux sender: type the prompt into a tmux pane.
+local function tmux_send(text)
+  local pane = M.config.tmux.pane or find_default_pane()
+  if not pane then
+    vim.notify("prompt-send.nvim: no non-neovim tmux pane found", vim.log.levels.ERROR)
+    return
+  end
+  local argv = { "tmux", "send-keys", "-t", pane, text }
+  if M.config.tmux.enter then
+    table.insert(argv, "Enter")
+  end
+  run_job(argv, text, false)
 end
 
 --- Terminal buffers that are still running a job.
@@ -311,110 +387,56 @@ local function terminal_send(text)
     vim.notify("prompt-send.nvim: no terminal buffer found", vim.log.levels.ERROR)
     return
   end
-  local data = text .. (M.config.enter and "\r" or "")
+  local data = text .. (M.config.terminal.enter and "\r" or "")
   local ok = pcall(vim.fn.chansend, job, data)
   if not ok then
     vim.notify("prompt-send.nvim: failed to send to terminal", vim.log.levels.ERROR)
   end
 end
 
---- Report a failed send. `detail` is the command's captured stderr.
-local function notify_failure(detail, code)
-  detail = vim.trim(detail or "")
-  if detail == "" then
-    detail = string.format("exited with code %d", code)
+--- command sender: run the command in `command.run`.
+local function command_send(text)
+  local run = M.config.command.run
+  if run == nil or run == "" then
+    vim.notify("prompt-send.nvim: command.run is empty", vim.log.levels.ERROR)
+    return
   end
-  vim.notify("prompt-send.nvim: " .. detail, vim.log.levels.ERROR)
-end
-
---- Build jobstart options that collect stderr and report it on failure.
-local function job_opts(use_stdin)
-  local stderr_lines = {}
-  return {
-    stdin = use_stdin and "pipe" or "null",
-    stderr_buffered = true,
-    on_stderr = function(_, data)
-      if type(data) ~= "table" then
-        return
-      end
-      for _, line in ipairs(data) do
-        if line ~= "" then
-          table.insert(stderr_lines, line)
-        end
-      end
-    end,
-    on_exit = function(_, code)
-      if code ~= 0 then
-        notify_failure(table.concat(stderr_lines, "\n"), code)
-      end
-    end,
-  }
-end
-
---- Turn a command spec into an argv list. A spec is a string (split on
---- whitespace) or, when a `send` function returns one, an argv table.
---- @param spec string|string[]
---- @return string[]
-local function to_argv(spec)
-  local argv = {}
-  if type(spec) == "table" then
-    for _, v in ipairs(spec) do
-      table.insert(argv, tostring(v))
-    end
-  elseif type(spec) == "string" then
-    for word in spec:gmatch("%S+") do
-      table.insert(argv, word)
-    end
-  end
-  return argv
-end
-
-local function external_send(text)
-  local spec = M.config.send
-  if spec == "terminal" then
-    return terminal_send(text)
-  end
-  spec = spec or tmux_argv
-  local is_fn = type(spec) == "function"
-  if not is_fn and type(spec) ~= "string" then
-    vim.notify("prompt-send.nvim: send must be a string or a function", vim.log.levels.ERROR)
+  if type(run) ~= "string" and type(run) ~= "function" then
+    vim.notify("prompt-send.nvim: command.run must be a string or function",
+      vim.log.levels.ERROR)
     return
   end
 
-  -- A function receives the resolved prompt and returns the complete argv,
-  -- with the prompt already placed; stdin is not applied in that case.
+  local is_fn = type(run) == "function"
   local ok, result = pcall(function()
     if is_fn then
-      return spec(text)
+      return run(text)
     end
-    return spec
+    return run
   end)
   if not ok then
-    vim.notify("prompt-send.nvim: send error: " .. tostring(result), vim.log.levels.ERROR)
+    vim.notify("prompt-send.nvim: command error: " .. tostring(result), vim.log.levels.ERROR)
     return
   end
 
   local argv = to_argv(result)
-  if #argv == 0 then
-    vim.notify("prompt-send.nvim: send is empty", vim.log.levels.ERROR)
-    return
-  end
-
-  local use_stdin = (not is_fn) and M.config.stdin
+  local use_stdin = (not is_fn) and M.config.command.stdin
   if not is_fn and not use_stdin then
     table.insert(argv, text)
   end
+  run_job(argv, text, use_stdin)
+end
 
-  local started, job = pcall(vim.fn.jobstart, argv, job_opts(use_stdin))
-  if not started or job <= 0 then
-    vim.notify("prompt-send.nvim: failed to start command", vim.log.levels.ERROR)
-    return
+--- Send through the method chosen by `via`.
+local function external_send(text)
+  local via = M.config.via
+  if via == "terminal" then
+    return terminal_send(text)
   end
-
-  if use_stdin then
-    vim.fn.chansend(job, text)
-    vim.fn.chanclose(job, "stdin")
+  if via == "command" then
+    return command_send(text)
   end
+  return tmux_send(text)
 end
 
 -- ── Completion ─────────────────────────────────────────────────────────────
@@ -468,27 +490,36 @@ end
 --- safe to call on every redraw (e.g. from a statusline).
 --- @return string  a pane id (e.g. "%0"), "auto", or "command"
 function M.target()
-  if M.config.send == "terminal" then
+  local via = M.config.via
+  if via == "terminal" then
     return "terminal"
   end
-  if M.config.send ~= nil then
+  if via == "command" then
     return "command"
   end
-  return M.config.pane or "auto"
+  return M.config.tmux.pane or "auto"
 end
 
 -- ── Setup ──────────────────────────────────────────────────────────────────
 
 function M.setup(opts)
   opts = opts or {}
-  if opts.send ~= nil then M.config.send = opts.send end
-  if opts.enter ~= nil then M.config.enter = opts.enter end
-  if opts.stdin ~= nil then M.config.stdin = opts.stdin end
+  if opts.via ~= nil then M.config.via = opts.via end
   if opts.references ~= nil then M.config.references = opts.references end
-  if opts.pane ~= nil then
-    M.config.pane = (opts.pane ~= "auto") and opts.pane or nil
-  end
   if opts.agents ~= nil then M.config.agents = opts.agents end
+  if opts.tmux ~= nil then
+    if opts.tmux.pane ~= nil then
+      M.config.tmux.pane = (opts.tmux.pane ~= "auto") and opts.tmux.pane or nil
+    end
+    if opts.tmux.enter ~= nil then M.config.tmux.enter = opts.tmux.enter end
+  end
+  if opts.terminal ~= nil and opts.terminal.enter ~= nil then
+    M.config.terminal.enter = opts.terminal.enter
+  end
+  if opts.command ~= nil then
+    if opts.command.run ~= nil then M.config.command.run = opts.command.run end
+    if opts.command.stdin ~= nil then M.config.command.stdin = opts.command.stdin end
+  end
 
   vim.api.nvim_create_user_command("PromptSend", function(args)
     local prompt = args.args
@@ -541,9 +572,9 @@ function M.setup(opts)
       return
     end
     if arg == "auto" then
-      M.config.pane = nil
+      M.config.tmux.pane = nil
     else
-      M.config.pane = arg
+      M.config.tmux.pane = arg
     end
     vim.notify("prompt-send.nvim: tmux pane set to " .. arg)
   end, {

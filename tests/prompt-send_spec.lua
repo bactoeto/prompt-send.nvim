@@ -36,7 +36,8 @@ vim.notify = function(msg) table.insert(notes, msg) end
 local function resolve(text, opts)
   sent, notes = nil, {}
   prompt.setup(vim.tbl_extend('force', {
-    send = function(p) sent = p; return { 'true' } end,
+    via = 'command',
+    command = { run = function(p) sent = p; return { 'true' } end },
   }, opts or {}))
   vim.cmd('PromptSend ' .. text)
   return sent, notes
@@ -70,21 +71,21 @@ end
 
 -- -- target() ----------------------------------------------------------------
 
-prompt.config.send = nil
+prompt.setup({ via = 'tmux', tmux = { pane = 'auto' } })
 eq('target: auto by default', prompt.target(), 'auto')
-prompt.setup({ pane = '%2' })
+prompt.setup({ tmux = { pane = '%2' } })
 eq('target: pinned pane', prompt.target(), '%2')
-prompt.setup({ pane = 'auto' })
+prompt.setup({ tmux = { pane = 'auto' } })
 eq('target: back to auto', prompt.target(), 'auto')
-prompt.setup({ send = 'some-cmd' })
-eq('target: custom send', prompt.target(), 'command')
-prompt.setup({ send = 'terminal' })
+prompt.setup({ via = 'command' })
+eq('target: command', prompt.target(), 'command')
+prompt.setup({ via = 'terminal' })
 eq('target: terminal', prompt.target(), 'terminal')
 
 -- -- terminal sender ---------------------------------------------------------
 
 do
-  local s, n = resolve('hi', { send = 'terminal' })
+  local s, n = resolve('hi', { via = 'terminal' })
   eq('terminal sender: sends nothing itself', s, nil)
   check('terminal sender: notifies when no terminal buffer', #n > 0,
     'notes=' .. vim.inspect(n))
@@ -92,8 +93,8 @@ end
 
 -- -- setup stores options ----------------------------------------------------
 
-prompt.setup({ pane = '%5', agents = { 'a', 'b' } })
-eq('pane is stored', prompt.config.pane, '%5')
+prompt.setup({ tmux = { pane = '%5' }, agents = { 'a', 'b' } })
+eq('pane is stored', prompt.config.tmux.pane, '%5')
 eq('agents are stored', prompt.config.agents, { 'a', 'b' })
 
 -- -- summary -----------------------------------------------------------------
