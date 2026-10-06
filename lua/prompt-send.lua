@@ -304,6 +304,15 @@ local function run_job(argv, text, use_stdin)
   end
 end
 
+--- Wrap multi-line text in a bracketed paste, so the target inserts its
+--- newlines instead of treating them as Enter.
+local function paste_wrap(text)
+  if text:find("\n") then
+    return "\27[200~" .. text .. "\27[201~"
+  end
+  return text
+end
+
 --- tmux sender: type the prompt into a tmux pane.
 local function tmux_send(text)
   local pane = M.config.tmux.pane or find_default_pane()
@@ -311,11 +320,8 @@ local function tmux_send(text)
     vim.notify("prompt-send.nvim: no non-neovim tmux pane found", vim.log.levels.ERROR)
     return
   end
-  local argv = { "tmux", "send-keys", "-t", pane, text }
-  if M.config.tmux.enter then
-    table.insert(argv, "Enter")
-  end
-  run_job(argv, text, false)
+  local data = paste_wrap(text) .. (M.config.tmux.enter and "\r" or "")
+  run_job({ "tmux", "send-keys", "-l", "-t", pane, data }, text, false)
 end
 
 --- Terminal buffers that are still running a job.
@@ -387,7 +393,7 @@ local function terminal_send(text)
     vim.notify("prompt-send.nvim: no terminal buffer found", vim.log.levels.ERROR)
     return
   end
-  local data = text .. (M.config.terminal.enter and "\r" or "")
+  local data = paste_wrap(text) .. (M.config.terminal.enter and "\r" or "")
   local ok = pcall(vim.fn.chansend, job, data)
   if not ok then
     vim.notify("prompt-send.nvim: failed to send to terminal", vim.log.levels.ERROR)
@@ -430,13 +436,16 @@ end
 --- Send through the method chosen by `via`.
 local function external_send(text)
   local via = M.config.via
+  if via == "tmux" then
+    return tmux_send(text)
+  end
   if via == "terminal" then
     return terminal_send(text)
   end
   if via == "command" then
     return command_send(text)
   end
-  return tmux_send(text)
+  vim.notify("prompt-send.nvim: unknown via: " .. tostring(via), vim.log.levels.ERROR)
 end
 
 -- ── Completion ─────────────────────────────────────────────────────────────

@@ -91,6 +91,14 @@ do
     'notes=' .. vim.inspect(n))
 end
 
+-- -- invalid `via` ------------------------------------------------------------
+
+do
+  local s, n = resolve('hi', { via = 'bogus' })
+  eq('unknown via sends nothing', s, nil)
+  check('unknown via notifies', #n > 0, 'notes=' .. vim.inspect(n))
+end
+
 -- -- setup stores options ----------------------------------------------------
 
 prompt.setup({ tmux = { pane = '%5' }, agents = { 'a', 'b' } })
