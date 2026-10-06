@@ -50,8 +50,8 @@ Or drop `lua/prompt-send.lua` into your config — one file, no dependencies.
 :PromptSend review this: @gitdiff
 ```
 
-By default it types into the first non-Neovim tmux pane. Pin a pane, or send
-somewhere else entirely:
+By default it prefers a tmux pane that looks like an agent, and otherwise the
+first non-Neovim pane. Pin one, or send somewhere else entirely:
 
 ```lua
 require('prompt-send').setup({
