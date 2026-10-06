@@ -312,3 +312,11 @@ instead of running:
 ```lua
 vim.json.encode({ text = prompt, resume = false })
 ```
+
+## Development
+
+The tests are self-contained (no tmux, no network). Run them with:
+
+```sh
+make test
+```
