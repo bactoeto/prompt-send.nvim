@@ -10,20 +10,12 @@ prompt to a tmux pane or an external CLI.
 
 ## Why
 
-I live in Neovim, but the things that want my prompts live somewhere else: an
-agent in a tmux pane, a CLI, an HTTP endpoint. And a prompt is rarely just
-prose — it's "explain this" pointing at a selection, or "what's wrong here"
-pointing at the diagnostics — so every time I had to copy it across by hand.
-
-This plugin doesn't try to be the agent. It takes what you type on the `:`
-command line, substitutes the Neovim bits you reference (`@buffer`, `@select`,
-`@diagnostic`, or any of your own), and hands the finished text to whatever is
-already running. Then it gets out of the way: nothing to reply to, no chat
-buffer, and nothing hard-coded for any particular tool — a target is just a
-command you point it at.
-
-It's a single file with no dependencies. There isn't much to it, and that's
-the point.
+I live in Neovim, and I got tired of copying pieces of it into whatever else
+wants my prompts. So this takes what you type on the `:` command line,
+substitutes the Neovim bits you reference (`@buffer`, `@select`, `@diagnostic`,
+or your own), and hands the result to whatever is already running — a tmux
+pane, a CLI, an HTTP endpoint. It doesn't wait for a reply, and it doesn't care
+which tool is on the other end. One file, no dependencies.
 
 ## Features
 
