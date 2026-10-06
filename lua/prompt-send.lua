@@ -179,7 +179,11 @@ local function list_tmux_panes()
 end
 
 local function is_nvim_command(cmd)
-  local base = cmd:match("([^/]+)$"):lower()
+  local base = (cmd or ""):match("([^/]+)$")
+  if base == nil then
+    return false
+  end
+  base = base:lower()
   return base == "nvim" or base == "vim" or base == "vi"
 end
 
@@ -321,7 +325,8 @@ local function tmux_send(text)
     return
   end
   local data = paste_wrap(text) .. (M.config.tmux.enter and "\r" or "")
-  run_job({ "tmux", "send-keys", "-l", "-t", pane, data }, text, false)
+  -- `--` stops option parsing, so a prompt starting with `-` is not a flag.
+  run_job({ "tmux", "send-keys", "-l", "-t", pane, "--", data }, text, false)
 end
 
 --- Terminal buffers that are still running a job.
