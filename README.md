@@ -17,8 +17,9 @@ Send a prompt made of what you're looking at, without leaving Neovim:
 ```
 
 Each `@...` is replaced with the real editor content — the diff, the
-selection, the diagnostics — before the prompt is sent. The default target is
-a tmux pane; a custom `send` can run any command instead. Bind a key for the
+selection, the diagnostics — before the prompt is sent. It goes to a tmux pane
+by default, but the agent can just as well run in a Neovim `:terminal` buffer
+(`send = 'terminal'`) or behind any command you configure. Bind a key for the
 Visual-mode flow:
 
 ```lua
