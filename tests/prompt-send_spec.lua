@@ -91,12 +91,21 @@ do
     'notes=' .. vim.inspect(n))
 end
 
--- -- invalid `via` ------------------------------------------------------------
+-- -- bad setup options ---------------------------------------------------------
 
 do
-  local s, n = resolve('hi', { via = 'bogus' })
-  eq('unknown via sends nothing', s, nil)
-  check('unknown via notifies', #n > 0, 'notes=' .. vim.inspect(n))
+  local cases = {
+    { 'unknown top-level option', { enetr = true } },
+    { 'unknown nested option', { tmux = { nope = 1 } } },
+    { 'bad via value', { via = 'bogus' } },
+    { 'wrong option type', { tmux = { enter = 'yes' } } },
+    { 'wrong command.run type', { command = { run = 42 } } },
+  }
+  for _, c in ipairs(cases) do
+    notes = {}
+    prompt.setup(c[2])
+    check('reject: ' .. c[1], #notes > 0, 'notes=' .. vim.inspect(notes))
+  end
 end
 
 -- -- setup stores options ----------------------------------------------------
