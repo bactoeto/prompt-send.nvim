@@ -150,4 +150,66 @@ prompt-send.target()                              *prompt-send.target()*
     'send:' .. require('prompt-send').target()
 <
 
+==============================================================================
+STATUSLINE
+
+|prompt-send.target()| returns where prompts will go. A statusline just needs
+to call it where the content is built. With mini.statusline that means
+rebuilding `content.active` and appending the string to a group:
+
+>lua
+      require('mini.statusline').setup({
+          content = {
+              active = function()
+                  local sl = require('mini.statusline')
+                  local mode, mode_hl = sl.section_mode({ trunc_width = 120 })
+                  local git           = sl.section_git({ trunc_width = 40 })
+                  local diff          = sl.section_diff({ trunc_width = 75 })
+                  local diagnostics   = sl.section_diagnostics({ trunc_width = 75 })
+                  local lsp           = sl.section_lsp({ trunc_width = 75 })
+                  local filename      = sl.section_filename({ trunc_width = 140 })
+                  local fileinfo      = sl.section_fileinfo({ trunc_width = 120 })
+                  local location      = sl.section_location({ trunc_width = 75 })
+                  local search        = sl.section_searchcount({ trunc_width = 75 })
+                  local prompt = 'send:' .. require('prompt-send').target()
+                  return sl.combine_groups({
+                      { hl = mode_hl, strings = { mode } },
+                      { hl = 'MiniStatuslineDevinfo', strings = { git, diff, diagnostics, lsp, prompt } },
+                      '%<',
+                      { hl = 'MiniStatuslineFilename', strings = { filename } },
+                      '%=',
+                      { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
+                      { hl = mode_hl, strings = { search, location } },
+                  })
+              end,
+          },
+      })
+<
+
+==============================================================================
+RECIPES
+
+Send to a running opencode session
+
+    opencode's `api` subcommand handles service discovery and auth, so there
+    is no shell or wrapper to write. Use a function `send` so the prompt is
+    JSON-encoded:
+
+>lua
+      local session = vim.env.OPENCODE_SESSION   -- e.g. 'ses_...'
+
+      require('prompt-send').setup({
+          send = function(prompt)
+              return {
+                  'opencode', 'api', 'post',
+                  '/api/session/' .. session .. '/prompt',
+                  '--data', vim.json.encode({ text = prompt }),
+              }
+          end,
+      })
+<
+    Get a session id with `opencode session list`, then start Neovim with
+    `OPENCODE_SESSION=ses_... nvim`. Add `resume = false` to the JSON body to
+    admit the input without running the agent.
+
 vim:tw=78:ts=8:noet:ft=help:norl:
