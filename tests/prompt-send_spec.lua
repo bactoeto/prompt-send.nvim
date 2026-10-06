@@ -42,6 +42,9 @@ local function resolve(text, opts)
   return sent, notes
 end
 
+check(':PromptSend and :PromptTerminal exist',
+  vim.fn.exists(':PromptSend') == 2 and vim.fn.exists(':PromptTerminal') == 2)
+
 -- -- references --------------------------------------------------------------
 
 vim.api.nvim_buf_set_lines(0, 0, -1, false, { 'BUF' })

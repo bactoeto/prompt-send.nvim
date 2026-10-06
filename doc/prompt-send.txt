@@ -44,7 +44,7 @@ send                                                       *prompt-send.send*
     `send = 'terminal'` is a reserved value that sends into a Neovim
     |:terminal| buffer instead of running a command — for a TUI running
     inside Neovim. It writes to a terminal whose title matches `agents`, or
-    the most recent one otherwise.
+    the most recent one otherwise; pin one with |:PromptTerminal|.
 
     The default (`nil`) is the built-in tmux sender, which is just a
     function:
@@ -125,6 +125,14 @@ COMMANDS
     A pane id    always send there, e.g. `%0`.
 
     The argument completes: type `:PromptTmuxPane ` and press <Tab>.
+
+:PromptTerminal [name]                              *:PromptTerminal*
+
+    Choose the Neovim |:terminal| buffer used by `send = 'terminal'`.
+
+    No argument  open a picker listing the terminal buffers.
+    `auto`       pick one matching `agents`, else the most recent.
+    A name       use the terminal whose title contains that name.
 
 ==============================================================================
 REFERENCES

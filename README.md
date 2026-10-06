@@ -19,12 +19,7 @@ Send a prompt made of what you're looking at, without leaving Neovim:
 Each `@...` is replaced with the real editor content — the diff, the
 selection, the diagnostics — before the prompt is sent. It goes to a tmux pane
 by default, but the agent can just as well run in a Neovim `:terminal` buffer
-(`send = 'terminal'`) or behind any command you configure. Bind a key for the
-Visual-mode flow:
-
-```lua
-vim.keymap.set('v', '<leader>sp', ':PromptSend ')
-```
+(`send = 'terminal'`) or behind any command you configure.
 
 ## Why
 
@@ -87,6 +82,8 @@ when the target (e.g. an agent) runs inside Neovim rather than tmux:
 ```lua
 require('prompt-send').setup({ send = 'terminal' })
 ```
+
+Pin a specific terminal with `:PromptTerminal`.
 
 ## References
 

@@ -18,6 +18,9 @@ M.config = {
   },
 }
 
+-- Terminal buffer pinned with :PromptTerminal (deliberately not a setup option).
+local terminal_buf = nil
+
 -- ── Default References ─────────────────────────────────────────────────────
 
 local default_refs = {}
@@ -239,25 +242,66 @@ local function tmux_argv(prompt)
   return argv
 end
 
---- Find a Neovim |:terminal| buffer to send into: one whose title looks
---- like an agent first (see `agents`), otherwise the most recent one.
-local function find_terminal_job()
-  local fallback = nil
+--- Terminal buffers that are still running a job.
+local function list_terminals()
+  local out = {}
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal" then
-      local job = vim.b[buf].terminal_job_id
-      if job and job > 0 then
-        fallback = job
-        local title = (vim.b[buf].term_title or ""):lower()
-        for _, name in ipairs(M.config.agents) do
-          if title:find(name:lower(), 1, true) then
-            return job
-          end
-        end
+    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal"
+        and vim.b[buf].terminal_job_id then
+      table.insert(out, buf)
+    end
+  end
+  return out
+end
+
+local function terminal_name(buf)
+  local title = vim.b[buf].term_title
+  return (title and title ~= "") and title or ("buffer " .. buf)
+end
+
+--- Find a Neovim |:terminal| buffer to send into: the one pinned with
+--- |:PromptTerminal|, else one whose title looks like an agent (see
+--- `agents`), else the most recent one.
+local function find_terminal_job()
+  if terminal_buf and vim.api.nvim_buf_is_valid(terminal_buf)
+      and vim.bo[terminal_buf].buftype == "terminal" then
+    return vim.b[terminal_buf].terminal_job_id
+  end
+
+  local fallback = nil
+  for _, buf in ipairs(list_terminals()) do
+    fallback = buf   -- last one wins, i.e. the most recent
+    local title = (vim.b[buf].term_title or ""):lower()
+    for _, name in ipairs(M.config.agents) do
+      if title:find(name:lower(), 1, true) then
+        return vim.b[buf].terminal_job_id
       end
     end
   end
-  return fallback
+  return fallback and vim.b[fallback].terminal_job_id
+end
+
+--- `:PromptTerminal` with no argument: pick a terminal from a list.
+local function prompt_terminal()
+  local terms = list_terminals()
+  if #terms == 0 then
+    vim.notify("prompt-send.nvim: no terminal buffers found", vim.log.levels.WARN)
+    return
+  end
+
+  local items = { { buf = nil, name = "auto (prefer a terminal matching agents)" } }
+  for _, buf in ipairs(terms) do
+    table.insert(items, { buf = buf, name = terminal_name(buf) })
+  end
+
+  vim.ui.select(items, {
+    prompt = "Select terminal:",
+    format_item = function(item) return item.name end,
+  }, function(choice)
+    if not choice then return end
+    terminal_buf = choice.buf
+    vim.notify("prompt-send.nvim: terminal set to " .. choice.name)
+  end)
 end
 
 --- Send `text` into a Neovim terminal buffer (for a TUI running in |:terminal|).
@@ -463,6 +507,31 @@ function M.setup(opts)
     range = true,
     complete = prompt_complete,
     desc = "Send a prompt with @references",
+  })
+
+  vim.api.nvim_create_user_command("PromptTerminal", function(args)
+    local arg = vim.trim(args.args)
+    if arg == "" then
+      prompt_terminal()   -- no argument: open the picker
+      return
+    end
+    if arg == "auto" then
+      terminal_buf = nil
+      vim.notify("prompt-send.nvim: terminal set to auto")
+      return
+    end
+    for _, buf in ipairs(list_terminals()) do
+      local title = vim.b[buf].term_title or ""
+      if title:lower():find(arg:lower(), 1, true) then
+        terminal_buf = buf
+        vim.notify("prompt-send.nvim: terminal set to " .. title)
+        return
+      end
+    end
+    vim.notify("prompt-send.nvim: no terminal matching " .. arg, vim.log.levels.WARN)
+  end, {
+    nargs = "?",
+    desc = "Select or set the Neovim terminal that receives prompts",
   })
 
   vim.api.nvim_create_user_command("PromptTmuxPane", function(args)
