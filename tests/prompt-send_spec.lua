@@ -100,6 +100,9 @@ do
     { 'bad via value', { via = 'bogus' } },
     { 'wrong option type', { tmux = { enter = 'yes' } } },
     { 'wrong command.run type', { command = { run = 42 } } },
+    { 'non-string agent', { agents = { 1 } } },
+    { 'non-function reference', { references = { foo = 'bar' } } },
+    { 'non-string reference name', { references = { [1] = function() end } } },
   }
   for _, c in ipairs(cases) do
     notes = {}

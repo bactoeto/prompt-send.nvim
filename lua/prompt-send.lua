@@ -568,9 +568,23 @@ local function validate_setup(opts)
   end
   if opts.agents ~= nil and type(opts.agents) ~= "table" then
     err("agents: expected a table")
+  elseif type(opts.agents) == "table" then
+    for i, name in ipairs(opts.agents) do
+      if type(name) ~= "string" then
+        err("agents[%d]: expected a string, got %s", i, type(name))
+      end
+    end
   end
   if opts.references ~= nil and type(opts.references) ~= "table" then
     err("references: expected a table")
+  elseif type(opts.references) == "table" then
+    for name, fn in pairs(opts.references) do
+      if type(name) ~= "string" then
+        err("references: keys must be strings, got %s", type(name))
+      elseif type(fn) ~= "function" then
+        err("references[%s]: expected a function, got %s", name, type(fn))
+      end
+    end
   end
 
   return errs
