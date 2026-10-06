@@ -7,20 +7,6 @@ editor via `@references`, and send the result to a tmux pane or any command.
 > plugin, docs, config — was written by an AI coding agent. A human only
 > directed and reviewed it. Treat it accordingly.
 
-## Example
-
-Send a prompt made of what you're looking at, without leaving Neovim:
-
-```vim
-:PromptSend review my changes: @gitdiff
-:'<,'>PromptSend what's wrong with this? @select @diagnostic
-```
-
-Each `@...` is replaced with the real editor content — the diff, the
-selection, the diagnostics — before the prompt is sent. It goes to a tmux pane
-by default, but the agent can just as well run in a Neovim `:terminal` buffer
-(`send = 'terminal'`) or behind any command you configure.
-
 ## Why
 
 When I'm coding in Neovim, I often wish the agent could just see what's in my
@@ -63,8 +49,10 @@ Or drop `lua/prompt-send.lua` into your config — one file, no dependencies.
 :PromptSend review this: @gitdiff
 ```
 
-By default it prefers a tmux pane that looks like an agent, and otherwise the
-first non-Neovim pane. Pin one, or send somewhere else entirely:
+Each `@...` is replaced with the real editor content — the selection, the
+diagnostics, the diff — before the prompt is sent. By default it prefers a tmux
+pane that looks like an agent, and otherwise the first non-Neovim pane. Pin
+one, or send somewhere else entirely:
 
 ```lua
 require('prompt-send').setup({
