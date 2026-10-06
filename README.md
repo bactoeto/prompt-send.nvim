@@ -172,7 +172,8 @@ require('prompt-send').setup({
 })
 ```
 
-A reference is a function with no arguments that returns a string.
+A reference is a function with no arguments that returns a string. A name may
+contain letters, digits, `_`, and `-`.
 
 It counts as **failed** when the call raises an error or returns `nil`. In
 that case nothing is sent and the error is shown. An empty string is a

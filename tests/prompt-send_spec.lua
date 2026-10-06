@@ -50,6 +50,8 @@ eq('@buffer resolves', resolve('x=@buffer'), 'x=BUF')
 eq('@@ escapes an @', resolve('a @@buffer b'), 'a @buffer b')
 eq('escape and resolve can mix', resolve('@@buffer and @buffer'), '@buffer and BUF')
 eq('unknown @name is left as-is', resolve('keep @nope here'), 'keep @nope here')
+eq('hyphenated name resolves',
+  resolve('@my-ref', { references = { ['my-ref'] = function() return 'X' end } }), 'X')
 eq('empty string is a success',
   resolve('@empty', { references = { empty = function() return '' end } }), '')
 

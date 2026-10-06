@@ -83,9 +83,10 @@ references                                           *prompt-send.references*
       },
   })
 <
-    A reference has failed when the call raises an error or returns `nil`; then
-    nothing is sent and the error is shown. An empty string is a success, and
-    an unknown @name is left as-is.
+    A name may contain letters, digits, `_` and `-`. A reference has failed
+    when the call raises an error or returns `nil`; then nothing is sent and
+    the error is shown. An empty string is a success, and an unknown @name is
+    left as-is.
 
 ==============================================================================
 COMMANDS

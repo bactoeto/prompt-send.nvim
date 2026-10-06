@@ -128,7 +128,7 @@ local function resolve_prompt(prompt)
   local ESCAPE = "\1"   -- stands in for an escaped "@"
 
   local resolved = prompt:gsub("@@", ESCAPE)
-  resolved = resolved:gsub("@([%w_]+)", function(name)
+  resolved = resolved:gsub("@([%w_%-]+)", function(name)
     local fn = refs[name]
     if fn == nil then
       return "@" .. name   -- unknown names are left as-is
@@ -361,7 +361,7 @@ local function pane_complete(arg_lead, _, _)
 end
 
 local function prompt_complete(arg_lead, _, _)
-  local token = arg_lead:match("@([%w_]*)$")
+  local token = arg_lead:match("@([%w_%-]*)$")
   if not token then
     return {}
   end
