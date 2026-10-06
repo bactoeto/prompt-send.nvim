@@ -174,6 +174,10 @@ require('prompt-send').setup({
 
 A reference is a function with no arguments that returns a string.
 
+It counts as **failed** when the call raises an error or returns `nil`. In
+that case nothing is sent and the error is shown. An empty string is a
+success, and an unknown `@name` is not a failure — it is left as-is.
+
 ## Commands
 
 ### `:PromptSend {prompt}`
