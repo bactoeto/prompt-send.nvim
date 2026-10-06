@@ -1,4 +1,5 @@
 -- prompt-send.nvim
+-- AI-generated, zero hand-written code. A human only directed and reviewed.
 -- A Neovim Lua plugin for sending prompts with @references via tmux or external CLI.
 
 local M = {}

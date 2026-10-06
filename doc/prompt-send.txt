@@ -3,6 +3,9 @@
 Write prompts in Neovim's `:` command line, reference Neovim content with
 `@reference`, and send the resolved prompt to a tmux pane or any command.
 
+This plugin is AI-generated, with zero hand-written code. A human only
+directed and reviewed it. Treat it accordingly.
+
 - |:PromptSend| resolves @references and sends the prompt.
 - |:PromptTmuxPane| chooses the tmux pane that receives prompts.
 - Built-in references `@buffer`, `@select`, `@diagnostic`, plus your own.

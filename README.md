@@ -1,5 +1,9 @@
 # prompt-send.nvim
 
+> **AI-generated, zero hand-written code.** Every line in this repository —
+> plugin, docs, config — was written by an AI coding agent. A human only
+> directed and reviewed it. Treat it accordingly.
+
 Write prompts in Neovim's `:` command line, reference Neovim content with
 `@reference` (buffer, selection, LSP diagnostics, ...), and send the resolved
 prompt to a tmux pane or an external CLI.
