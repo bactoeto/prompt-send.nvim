@@ -35,6 +35,10 @@ send                                                       *prompt-send.send*
                 argv (list of strings). The function places the prompt
                 itself, so `stdin` does not apply.
 
+    The command's stdout is discarded; only its stderr is kept, and shown as
+    an error notification when the command exits non-zero. A successful send
+    is silent. This plugin does not read a reply.
+
     The default (`nil`) is the built-in tmux sender, which is just a
     function:
 

@@ -106,6 +106,10 @@ function form for arguments containing spaces or for computed argv (for
 example JSON-encoding the prompt for an HTTP API), or a wrapper script for
 anything more complex (pipes, redirection, `sh -c`).
 
+The command's `stdout` is discarded. Only `stderr` is kept, and it is shown
+as an error notification when the command exits non-zero; a successful send
+is silent. This plugin does not read a reply — it is send-only.
+
 ### `pane`
 
 Which tmux pane the built-in sender types into. Defaults to `nil`, which
