@@ -36,6 +36,11 @@ function default_refs.file()
   return vim.fn.fnamemodify(name, ":.")
 end
 
+--- @n : a literal newline, handy for multi-line prompts
+function default_refs.n()
+  return "\n"
+end
+
 --- @select : last Visual selection, read from '< and '> marks
 function default_refs.select()
   local smark = vim.fn.getpos("'<")

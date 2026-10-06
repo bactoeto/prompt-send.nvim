@@ -267,6 +267,7 @@ Built-in references:
 | `@select` | Last Visual selection |
 | `@diagnostic` | LSP diagnostics of the current buffer, as `[SEVERITY] message (line N)` |
 | `@gitdiff` | Unstaged changes in the repository (`git diff --no-color`) |
+| `@n` | A literal newline, for multi-line prompts |
 
 `@select` reads the `'<` / `'>` marks without re-entering Visual mode, and
 supports char / line / block selections. Returns `(no visual selection)` when

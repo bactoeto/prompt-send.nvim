@@ -132,6 +132,9 @@ REFERENCES
 @gitdiff                                             *prompt-send-@gitdiff*
     Unstaged changes in the repository ("git diff --no-color").
 
+@n                                                           *prompt-send-@n*
+    A literal newline, for multi-line prompts.
+
 ==============================================================================
 API
 
