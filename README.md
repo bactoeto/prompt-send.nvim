@@ -37,7 +37,7 @@ the references, edit, and send. But that's enough, isn't it?
 - `:PromptTmuxPane` — choose the tmux pane that receives prompts
 - Built-in `@buffer`, `@file`, `@select`, `@diagnostic`, `@gitdiff`, `@N`
 - `@` completion; works from Visual mode
-- Sends through tmux by default, or any command you configure
+- Sends to a tmux pane, a Neovim `:terminal` buffer, or any command
 
 ## Requirements
 
@@ -78,6 +78,13 @@ require('prompt-send').setup({
     -- send = 'opencode run',           -- or run any command
     -- send = function(prompt) ... end, -- or build the argv yourself
 })
+```
+
+`send = 'terminal'` writes straight into a Neovim `:terminal` buffer — handy
+when the target (e.g. an agent) runs inside Neovim rather than tmux:
+
+```lua
+require('prompt-send').setup({ send = 'terminal' })
 ```
 
 ## References
