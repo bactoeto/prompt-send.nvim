@@ -82,7 +82,9 @@ require('prompt-send').setup({
 | `@gitdiff` | Unstaged git changes |
 | `@N` | A literal newline (self-delimiting; capital `N` is reserved) |
 
-`@@` escapes an `@` — `@@buffer` is the literal `@buffer`. Add your own with
+`@@` escapes an `@` — `@@buffer` is the literal `@buffer`. 
+
+Add your own with
 `references = { name = function() ... end }`.
 
 ## Help
