@@ -18,7 +18,7 @@ the references, edit, and send. But that's enough, isn't it?
 - Built-in `@buffer`, `@file`, `@select`, `@diagnostic`, `@gitdiff`, `@N`,
   plus your own references
 - `@` completion for reference names
-- Works from Visual mode
+- Also works from Visual mode
 - Sends to a tmux pane, a Neovim `:terminal` buffer, or any command
 
 ## Requirements
