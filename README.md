@@ -57,11 +57,11 @@ one, or send somewhere else entirely:
 
 ```lua
 require('prompt-send').setup({
-    via = 'tmux',                        -- 'tmux' | 'terminal' | 'command'
+    via = 'tmux',                 -- 'tmux' | 'terminal' | 'command'
 
-    tmux     = { pane = '%3' },          -- tmux: pin a pane (default: scan)
-    terminal = { enter = true },         -- terminal: options
-    command  = { run = 'opencode run' }, -- command: what to run
+    tmux = { pane = '%3' },       -- options for `via = 'tmux'`
+    -- terminal = { enter = true },
+    -- command  = { run = 'opencode run' },
 })
 ```
 
