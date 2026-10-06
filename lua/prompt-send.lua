@@ -27,6 +27,15 @@ function default_refs.buffer()
   return table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
 end
 
+--- @file : current buffer's path, relative to the working directory
+function default_refs.file()
+  local name = vim.api.nvim_buf_get_name(0)
+  if name == "" then
+    return "(no file)"
+  end
+  return vim.fn.fnamemodify(name, ":.")
+end
+
 --- @select : last Visual selection, read from '< and '> marks
 function default_refs.select()
   local smark = vim.fn.getpos("'<")
@@ -67,6 +76,18 @@ function default_refs.select()
   lines[1] = lines[1]:sub(sc)
   lines[#lines] = lines[#lines]:sub(1, ec)
   return table.concat(lines, "\n")
+end
+
+--- @gitdiff : unstaged changes in the repository
+function default_refs.gitdiff()
+  local out = vim.fn.systemlist({ "git", "diff", "--no-color" })
+  if vim.v.shell_error ~= 0 then
+    return "(not a git repository)"
+  end
+  if #out == 0 then
+    return "(no changes)"
+  end
+  return table.concat(out, "\n")
 end
 
 --- @diagnostic : LSP diagnostics for current buffer

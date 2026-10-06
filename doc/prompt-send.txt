@@ -109,12 +109,18 @@ REFERENCES
 @buffer                                                 *prompt-send-@buffer*
     Current buffer content.
 
+@file                                                     *prompt-send-@file*
+    Current buffer's path, relative to the working directory.
+
 @select                                                 *prompt-send-@select*
     Last Visual selection, read from the |'<| and |'>| marks (no need to
     re-enter Visual mode). Supports char, line, and block selections.
 
 @diagnostic                                         *prompt-send-@diagnostic*
     LSP diagnostics of the current buffer.
+
+@gitdiff                                             *prompt-send-@gitdiff*
+    Unstaged changes in the repository ("git diff --no-color").
 
 ==============================================================================
 API

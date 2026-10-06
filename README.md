@@ -18,7 +18,7 @@ the references, edit, and send. But that's enough, isn't it?
 
 - `:PromptSend` — send a prompt, resolving `@reference`
 - `:PromptTmuxPane` — choose the tmux pane that receives prompts
-- Built-in references: `@buffer`, `@select`, `@diagnostic`
+- Built-in references: `@buffer`, `@file`, `@select`, `@diagnostic`, `@gitdiff`
 - Completion for `@reference`
 - Works directly from Visual mode
 - Send via tmux or any external command
@@ -251,8 +251,10 @@ Built-in references:
 | Name | Content |
 |------|---------|
 | `@buffer` | Current buffer content |
+| `@file` | Current buffer's path, relative to the working directory |
 | `@select` | Last Visual selection |
 | `@diagnostic` | LSP diagnostics of the current buffer, as `[SEVERITY] message (line N)` |
+| `@gitdiff` | Unstaged changes in the repository (`git diff --no-color`) |
 
 `@select` reads the `'<` / `'>` marks without re-entering Visual mode, and
 supports char / line / block selections. Returns `(no visual selection)` when
