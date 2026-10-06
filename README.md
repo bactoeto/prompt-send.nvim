@@ -7,6 +7,24 @@ editor via `@references`, and send the result to a tmux pane or any command.
 > plugin, docs, config — was written by an AI coding agent. A human only
 > directed and reviewed it. Treat it accordingly.
 
+## Example
+
+Your agent runs in a tmux pane. Send it what you're looking at, without
+leaving Neovim:
+
+```vim
+:PromptSend review my changes: @gitdiff
+:'<,'>PromptSend what's wrong with this? @select @diagnostic
+```
+
+Each `@...` is replaced with the real editor content — the diff, the
+selection, the diagnostics — and the resolved prompt is typed into the pane.
+For the Visual-mode flow, bind a key:
+
+```lua
+vim.keymap.set('v', '<leader>sp', ':PromptSend ')
+```
+
 ## Why
 
 When I'm coding in Neovim, I often wish the agent could just see what's in my
