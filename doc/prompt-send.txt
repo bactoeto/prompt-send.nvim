@@ -30,13 +30,14 @@ SETUP                                                      *prompt-send.setup*
 <
 All keys are optional. Requiring the module already applies these defaults.
 Unknown options, wrong types, and a bad `via` are reported as errors.
-A multi-line prompt is sent as a bracketed paste by the tmux and terminal
-senders, so its newlines are inserted rather than submitted.
 
 via                                                          *prompt-send.via*
 
     Which method sends the prompt: `'tmux'` (default), `'terminal'`, or
     `'command'`. Each has its own table below.
+
+    The tmux and terminal senders deliver a multi-line prompt as a bracketed
+    paste, so its newlines are inserted rather than submitted.
 
 tmux                                                        *prompt-send.tmux*
 
