@@ -75,6 +75,17 @@ prompt.setup({ pane = 'auto' })
 eq('target: back to auto', prompt.target(), 'auto')
 prompt.setup({ send = 'some-cmd' })
 eq('target: custom send', prompt.target(), 'command')
+prompt.setup({ send = 'terminal' })
+eq('target: terminal', prompt.target(), 'terminal')
+
+-- -- terminal sender ---------------------------------------------------------
+
+do
+  local s, n = resolve('hi', { send = 'terminal' })
+  eq('terminal sender: sends nothing itself', s, nil)
+  check('terminal sender: notifies when no terminal buffer', #n > 0,
+    'notes=' .. vim.inspect(n))
+end
 
 -- -- setup stores options ----------------------------------------------------
 

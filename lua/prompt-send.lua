@@ -239,6 +239,41 @@ local function tmux_argv(prompt)
   return argv
 end
 
+--- Find a Neovim |:terminal| buffer to send into: one whose title looks
+--- like an agent first (see `agents`), otherwise the most recent one.
+local function find_terminal_job()
+  local fallback = nil
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buftype == "terminal" then
+      local job = vim.b[buf].terminal_job_id
+      if job and job > 0 then
+        fallback = job
+        local title = (vim.b[buf].term_title or ""):lower()
+        for _, name in ipairs(M.config.agents) do
+          if title:find(name:lower(), 1, true) then
+            return job
+          end
+        end
+      end
+    end
+  end
+  return fallback
+end
+
+--- Send `text` into a Neovim terminal buffer (for a TUI running in |:terminal|).
+local function terminal_send(text)
+  local job = find_terminal_job()
+  if not job then
+    vim.notify("prompt-send.nvim: no terminal buffer found", vim.log.levels.ERROR)
+    return
+  end
+  local data = text .. (M.config.enter and "\r" or "")
+  local ok = pcall(vim.fn.chansend, job, data)
+  if not ok then
+    vim.notify("prompt-send.nvim: failed to send to terminal", vim.log.levels.ERROR)
+  end
+end
+
 --- Report a failed send. `detail` is the command's captured stderr.
 local function notify_failure(detail, code)
   detail = vim.trim(detail or "")
@@ -291,7 +326,11 @@ local function to_argv(spec)
 end
 
 local function external_send(text)
-  local spec = M.config.send or tmux_argv
+  local spec = M.config.send
+  if spec == "terminal" then
+    return terminal_send(text)
+  end
+  spec = spec or tmux_argv
   local is_fn = type(spec) == "function"
   if not is_fn and type(spec) ~= "string" then
     vim.notify("prompt-send.nvim: send must be a string or a function", vim.log.levels.ERROR)
@@ -385,6 +424,9 @@ end
 --- safe to call on every redraw (e.g. from a statusline).
 --- @return string  a pane id (e.g. "%0"), "auto", or "command"
 function M.target()
+  if M.config.send == "terminal" then
+    return "terminal"
+  end
   if M.config.send ~= nil then
     return "command"
   end

@@ -17,7 +17,7 @@ SETUP                                                    *prompt-send.setup*
 
 >lua
   require('prompt-send').setup({
-      send       = nil,   -- nil = built-in tmux sender
+      send       = nil,   -- nil = tmux sender; 'terminal' = Neovim terminal
       enter      = true,  -- append Enter to the tmux sender
       stdin      = false, -- pass prompt via stdin (string send only)
       pane       = nil,   -- tmux pane to send to; nil = auto-scan
@@ -40,6 +40,11 @@ send                                                       *prompt-send.send*
     The command's stdout is discarded; only its stderr is kept, and shown as
     an error notification when the command exits non-zero. A successful send
     is silent. This plugin does not read a reply.
+
+    `send = 'terminal'` is a reserved value that sends into a Neovim
+    |:terminal| buffer instead of running a command — for a TUI running
+    inside Neovim. It writes to a terminal whose title matches `agents`, or
+    the most recent one otherwise.
 
     The default (`nil`) is the built-in tmux sender, which is just a
     function:
@@ -157,9 +162,10 @@ API
 
 prompt-send.target()                              *prompt-send.target()*
 
-    Returns where prompts will go: a pane id (e.g. `"%0"`), `"auto"`, or
-    `"command"` when a custom `send` is configured. It only reads
-    in-memory state, so it is cheap enough for a statusline.
+    Returns where prompts will go: a pane id (e.g. `"%0"`), `"auto"`,
+    `"terminal"` for the Neovim-terminal sender, or `"command"` when a
+    custom `send` is configured. It only reads in-memory state, so it is
+    cheap enough for a statusline.
 
 >lua
     'send:' .. require('prompt-send').target()
