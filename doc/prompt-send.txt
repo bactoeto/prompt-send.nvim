@@ -145,9 +145,10 @@ REFERENCES
 
 @n                                                           *prompt-send-@n*
 
-    A literal newline, for multi-line prompts. Names are greedy, so follow
-    it with a space, punctuation, or the end of the prompt: use `a@n.b`,
-    not `a@nb` (that looks up a reference named `nb`).
+    A literal newline, for multi-line prompts. Follow it with a space (which
+    is eaten), punctuation, or the end of the prompt: `a@n b` gives `a` and
+    `b` on separate lines. `a@nb` does not work — names are greedy, so it
+    looks up a reference named `nb`.
 
 ==============================================================================
 API

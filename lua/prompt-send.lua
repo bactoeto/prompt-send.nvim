@@ -133,6 +133,8 @@ local function resolve_prompt(prompt)
   local ESCAPE = "\1"   -- stands in for an escaped "@"
 
   local resolved = prompt:gsub("@@", ESCAPE)
+  -- `@n` inserts a newline; eat one trailing space so `a@n b` becomes `a\nb`
+  resolved = resolved:gsub("@n([ \t])", "\n")
   resolved = resolved:gsub("@([%w_%-]+)", function(name)
     local fn = refs[name]
     if fn == nil then
