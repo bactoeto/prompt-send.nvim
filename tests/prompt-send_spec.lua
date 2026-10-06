@@ -52,7 +52,8 @@ eq('escape and resolve can mix', resolve('@@buffer and @buffer'), '@buffer and B
 eq('unknown @name is left as-is', resolve('keep @nope here'), 'keep @nope here')
 eq('hyphenated name resolves',
   resolve('@my-ref', { references = { ['my-ref'] = function() return 'X' end } }), 'X')
-eq('@n is a newline', resolve('a@nb'), 'a\nb')
+eq('@n is a newline', resolve('a@n'), 'a\n')
+eq('@n works before punctuation', resolve('a@n.b'), 'a\n.b')
 eq('@@n is a literal @n', resolve('@@n'), '@n')
 eq('empty string is a success',
   resolve('@empty', { references = { empty = function() return '' end } }), '')

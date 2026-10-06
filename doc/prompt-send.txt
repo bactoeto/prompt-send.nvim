@@ -133,7 +133,9 @@ REFERENCES
     Unstaged changes in the repository ("git diff --no-color").
 
 @n                                                           *prompt-send-@n*
-    A literal newline, for multi-line prompts.
+    A literal newline, for multi-line prompts. Names are greedy, so follow
+    it with a space, punctuation, or the end of the prompt: use `a@n.b`,
+    not `a@nb` (that looks up a reference named `nb`).
 
 ==============================================================================
 API

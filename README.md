@@ -269,6 +269,11 @@ Built-in references:
 | `@gitdiff` | Unstaged changes in the repository (`git diff --no-color`) |
 | `@n` | A literal newline, for multi-line prompts |
 
+`@n` inserts a newline. Reference names are greedy, so put a space,
+punctuation, or the end of the prompt right after it — `a@n.b`, not `a@nb`
+(which would look up a reference named `nb`). Non-ASCII text is fine:
+`第一行@n第二行` works.
+
 `@select` reads the `'<` / `'>` marks without re-entering Visual mode, and
 supports char / line / block selections. Returns `(no visual selection)` when
 no valid selection exists.
