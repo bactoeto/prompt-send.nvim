@@ -8,6 +8,22 @@ Write prompts in Neovim's `:` command line, reference Neovim content with
 `@reference` (buffer, selection, LSP diagnostics, ...), and send the resolved
 prompt to a tmux pane or an external CLI.
 
+## Why
+
+You already have something running that takes prompts — an agent TUI in a tmux
+pane, a CLI, an HTTP endpoint. This plugin does not try to be that thing. It
+does one job: take a prompt you type in Neovim, fill in its `@references` from
+your real editor state, and deliver it to whatever is already there.
+
+- **Editor context is the point.** `@buffer`, `@select`, `@diagnostic`, and
+  your own references turn Neovim state into prompt text — no copy-paste.
+- **Fire-and-forget.** No reply handling, no chat buffer, no streaming. It
+  sends and gets out of the way; you only hear from it if the command fails.
+- **Agent-agnostic.** It knows nothing about LLMs or any specific tool. A
+  target is just a command you configure, so it works with whatever you run.
+- **Small by design.** One file, no dependencies, no state. Drop it in or
+  install it, and bind a key.
+
 ## Features
 
 - `:PromptSend` — send a prompt, resolving `@reference`
