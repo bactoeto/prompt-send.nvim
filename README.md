@@ -1,7 +1,7 @@
 # prompt-send.nvim
 
 Write a prompt in Neovim's `:` command line, fill it with pieces of your
-editor via `@references`, and send the result to a tmux pane or any command.
+editor via `@references`, and send the result to a tmux pane，a neovim terminal buffer, or any command.
 
 > **AI-generated, zero hand-written code.** Every line in this repository —
 > plugin, docs, config — was written by an AI coding agent. A human only
