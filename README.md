@@ -20,14 +20,14 @@ Neovim 0.10+.
 vim.pack (Neovim 0.12+):
 
 ```lua
-vim.pack.add({ 'https://github.com/<you>/prompt-send.nvim' })
+vim.pack.add({ 'https://github.com/bactoeto/prompt-send.nvim' })
 require('prompt-send').setup()
 ```
 
 lazy.nvim:
 
 ```lua
-{ '<you>/prompt-send.nvim', opts = {} }
+{ 'bactoeto/prompt-send.nvim', opts = {} }
 ```
 
 Or just drop `lua/prompt-send.lua` into your config — it is a single file
