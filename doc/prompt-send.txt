@@ -1,0 +1,113 @@
+*prompt-send.nvim*                                          *prompt-send*
+
+Write prompts in Neovim's `:` command line, reference Neovim content with
+`@reference`, and send the resolved prompt to a tmux pane or any command.
+
+- |:PromptSend| resolves @references and sends the prompt.
+- |:PromptTmuxPane| chooses the tmux pane that receives prompts.
+- Built-in references `@buffer`, `@select`, `@diagnostic`, plus your own.
+- @reference completion; works directly from Visual mode.
+
+==============================================================================
+SETUP                                                    *prompt-send.setup*
+
+>lua
+  require('prompt-send').setup({
+      send       = nil,   -- nil = built-in tmux sender
+      enter      = true,  -- append Enter to the tmux sender
+      stdin      = false, -- pass prompt via stdin (string send only)
+      references = {},    -- add or override @references
+  })
+<
+All keys are optional. Requiring the module already applies these defaults.
+
+send                                                       *prompt-send.send*
+    A string or function used to send the resolved prompt.
+
+    - string:   split on whitespace into argv; never invokes a shell.
+    - function: called with the resolved prompt, returns a string or an
+                argv (list of strings). The function places the prompt
+                itself, so `stdin` does not apply.
+
+    The default (`nil`) is the built-in tmux sender, which is just a
+    function:
+
+>lua
+      send = function(prompt)
+          return { 'tmux', 'send-keys', '-t', pane, prompt, 'Enter' }
+      end
+<
+    `pane` is the pane pinned with |:PromptTmuxPane|, or the first tmux
+    pane that is not Neovim (found by scanning "tmux list-panes -a").
+
+enter                                                     *prompt-send.enter*
+    Whether the built-in tmux sender appends `Enter`. Ignored when `send`
+    is set.
+
+stdin                                                     *prompt-send.stdin*
+    How the prompt is passed when `send` is a string. `true` writes it to
+    the command's stdin and closes it; `false` appends it as the last
+    argument. Ignored for a function `send` and the built-in tmux sender.
+
+references                                           *prompt-send.references*
+    Table mapping a name to a function with no arguments that returns a
+    string. Merged over the built-in references; same name overrides.
+
+>lua
+  require('prompt-send').setup({
+      references = {
+          git = function() return vim.fn.system('git diff') end,
+      },
+  })
+<
+
+==============================================================================
+COMMANDS
+
+:PromptSend {prompt}                                     *:PromptSend*
+
+    Send a prompt, replacing every @reference first. Works from Visual
+    mode; the leading `'<,'>` is handled for you.
+
+>vim
+    :PromptSend check @buffer
+    :'<,'>PromptSend explain @select
+    :PromptSend what is wrong here: @select @diagnostic
+<
+    Typing `@` completes reference names. Unknown @names are left as-is.
+
+:PromptTmuxPane [pane]                                *:PromptTmuxPane*
+
+    No argument  open a picker listing the panes.
+    `auto`       scan on each send and pick the first non-Neovim pane.
+    A pane id    always send there, e.g. `%0`.
+
+    The argument completes: type `:PromptTmuxPane ` and press <Tab>.
+
+==============================================================================
+REFERENCES
+
+@buffer                                                 *prompt-send-@buffer*
+    Current buffer content.
+
+@select                                                 *prompt-send-@select*
+    Last Visual selection, read from the |'<| and |'>| marks (no need to
+    re-enter Visual mode). Supports char, line, and block selections.
+
+@diagnostic                                         *prompt-send-@diagnostic*
+    LSP diagnostics of the current buffer.
+
+==============================================================================
+API
+
+prompt-send.target()                              *prompt-send.target()*
+
+    Returns where prompts will go: a pane id (e.g. `"%0"`), `"auto"`, or
+    `"command"` when a custom `send` is configured. It only reads
+    in-memory state, so it is cheap enough for a statusline.
+
+>lua
+    'send:' .. require('prompt-send').target()
+<
+
+vim:tw=78:ts=8:noet:ft=help:norl:
