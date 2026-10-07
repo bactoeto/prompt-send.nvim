@@ -96,9 +96,4 @@ and a couple of recipes — is in `:help prompt-send`.
 
 ```sh
 make test   # run the specs (no dependencies)
-make doc    # regenerate :help prompt-send from the Lua annotations
 ```
-
-`make doc` uses [mini.doc](https://github.com/nvim-mini/mini.nvim), so it needs
-mini.nvim installed. `doc/prompt-send.txt` is generated — edit the annotations
-in `lua/prompt-send.lua`, not the help file.
