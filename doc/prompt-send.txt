@@ -15,22 +15,8 @@ CONTENTS                                                *prompt-send-contents*
 ==============================================================================
 INTRODUCTION       *prompt-send* *prompt-send.nvim* *prompt-send-introduction*
 
-Write a prompt in Neovim's `:` command line, fill it with editor content using
-`@references`, and send it to a tmux pane, a Neovim |:terminal| buffer, or an
-external command.
-
-Features:
-
-- Write a prompt in the `:` command line and fill it with editor content via
-  `@references`. See |:PromptSend|.
-- Built-in references `@buffer`, `@file`, `@select`, `@diagnostic`, `@gitdiff`
-  and `@N`, plus your own. See |prompt-send-references|.
-- Reference name completion and support for Visual mode.
-- Three ways to send: a tmux pane, a Neovim |:terminal| buffer, or an external
-  command. See |prompt-send-config-via|.
-
-This plugin is AI-generated, with zero hand-written code. A human only
-directed and reviewed it. Treat it accordingly.
+Use |:PromptSend| to fill `@references` with editor content and send a prompt
+to tmux, a Neovim |:terminal| buffer, or an external command.
 
 ==============================================================================
 REQUIREMENTS                                        *prompt-send-requirements*
@@ -41,19 +27,14 @@ REQUIREMENTS                                        *prompt-send-requirements*
 ==============================================================================
 SETUP                                                      *prompt-send-setup*
 
-Loading the module with `require('prompt-send')` registers the commands with
-the default options. Call `setup()` to change them: >lua
+`require('prompt-send')` registers the commands with default options. To
+change them: >lua
 
-  require('prompt-send').setup({
-    via = 'tmux',
-    tmux = { pane = '%3' },
-  })
+  require('prompt-send').setup({ tmux = { pane = '%3' } })
 <
-Options you leave out keep their current value. See |prompt-send-config| for
-every option and its default.
-
-A bad `via` is reported as an error, and the plugin then refuses to send until
-a later `setup()` succeeds. Nothing else is validated.
+Omitted options retain their current values. An invalid `via` disables sending
+until a later `setup()` succeeds; other options are not validated. See
+|prompt-send-config| for defaults.
 
 ==============================================================================
 CONFIGURATION                 *prompt-send-config* *prompt-send-configuration*
@@ -88,25 +69,19 @@ via ~
 
 Type: string, default `"tmux"`.
 
-How the prompt is sent. One of:
-
-  `"tmux"`      type it into a tmux pane. See |prompt-send-config-tmux|.
-  `"terminal"`  write it to a Neovim |:terminal| buffer. See
+  `"tmux"`      send to a tmux pane. See |prompt-send-config-tmux|.
+  `"terminal"`  send to a Neovim |:terminal| buffer. See
                 |prompt-send-config-terminal|.
   `"command"`   run an external command. See |prompt-send-config-command|.
 
-The tmux and terminal senders deliver a multi-line prompt as a bracketed
-paste, so its newlines are inserted rather than submitted.
+Tmux and terminal use bracketed paste for multi-line prompts.
 
                                                      *prompt-send-config-tmux*
 tmux ~
 
-Type: table. Options for `via = "tmux"`.
-
 `tmux.pane`  (string or nil, default `nil`)
-    A pane id like `"%2"` to always send to. With `nil` a pane is picked on
-    each send (see |prompt-send-config-agents|). |:PromptTmuxPane| overrides
-    it for the current session.
+    Pin a pane id such as `"%2"`; `nil` picks per send (see
+    |prompt-send-config-agents|). Change it with |:PromptTmuxPane|.
 
 `tmux.enter`  (boolean, default `true`)
     Append Enter after the prompt.
@@ -114,67 +89,46 @@ Type: table. Options for `via = "tmux"`.
                                                  *prompt-send-config-terminal*
 terminal ~
 
-Type: table. Options for `via = "terminal"`.
-
 `terminal.enter`  (boolean, default `true`)
-    Append a newline after the prompt.
-
-The buffer to send to is chosen with |:PromptTerminal|.
+    Append a newline after the prompt. Choose a buffer with |:PromptTerminal|.
 
                                                   *prompt-send-config-command*
 command ~
 
-Type: table. Options for `via = "command"`.
-
 `command.run`  (string, function or nil, default `nil`)
-    The command to run. Set it before sending. It is either:
-    - a string, split on whitespace into argv (no shell is involved); or
-    - a function called with the resolved prompt that returns a string or an
-      argv list.
+    Required for sending. A string is split on whitespace (no shell); a
+    function receives the resolved prompt and returns a string or argv list.
 
 `command.stdin`  (boolean, default `false`)
-    Used when `command.run` is a string. `true` writes the prompt to stdin and
-    closes it; `false` appends it as the last argument.
+    For string commands: `true` writes the prompt to stdin; `false` appends
+    it as the last argument. Functions handle the prompt themselves.
 
-The command's stdout is discarded. A non-zero exit shows its stderr as an
-error notification. Success is silent: no reply is read.
+Stdout is discarded; a non-zero exit reports stderr. Success is silent.
 
                                                    *prompt-send-config-agents*
 agents ~
 
-Type: list of strings. Names that identify an agent.
-
-When `tmux.pane` is `nil`, each pane's `pane_current_command` and
-`pane_title` are matched against these names. The first match wins; if
-nothing matches, the first non-Neovim pane is used. Set `agents = {}` to skip
-the name match.
-
-The terminal sender matches `term_title` against the same names when no
-buffer has been chosen with |:PromptTerminal|.
+Type: list of strings. For automatic tmux selection, match pane command and
+title; use the first matching pane, or the first non-Neovim pane. For terminal
+selection, match `term_title`, or use the most recent buffer. Set
+`agents = {}` to skip matching.
 
                                                *prompt-send-config-references*
 references ~
 
-Type: table, default `{}`. Maps a name to a function.
-
-Each function takes no arguments and returns a string. They are merged over
-the built-in references, and a same name overrides the built-in one.
-Example: >lua
+Type: table, default `{}`. Map names to zero-argument functions returning
+strings. Custom names override built-in references. For example: >lua
 
   require('prompt-send').setup({
-    references = {
-      git = function() return vim.fn.system('git diff') end,
-    },
+    references = { git = function() return vim.fn.system('git diff') end },
   })
 <
-Then `:PromptSend explain @git` works. See |prompt-send-reference-rules| for
-what a name may contain and what counts as a failure.
+See |prompt-send-reference-rules| for name and failure rules.
 
 ==============================================================================
 REFERENCES                                            *prompt-send-references*
 
-A `@name` in a prompt is replaced with editor content before the prompt is
-sent. Typing `@` on the command line completes reference names.
+`@name` is resolved before sending. Typing `@` completes reference names.
 
 Built-in references:
 
@@ -185,9 +139,7 @@ Built-in references:
     Current buffer's path, relative to the working directory.
 
 @select                                                  *prompt-send-@select*
-    Last Visual selection, read from the |'<| and |'>| marks, so there is no
-    need to re-enter Visual mode. Character, line and block selections are
-    supported.
+    Last Visual selection (character, line or block), from |'<| and |'>|.
 
 @gitdiff                                                *prompt-send-@gitdiff*
     Unstaged changes in the repository (`git diff --no-color`).
@@ -196,33 +148,28 @@ Built-in references:
     LSP diagnostics of the current buffer.
 
 @N                                                            *prompt-send-@N*
-    A literal newline. `@N` is self-delimiting, so it works right next to
-    text: `a@Nb` gives `a` and `b` on separate lines. Capital `N` is
-    reserved, so do not start a reference name with it.
+    A literal newline. Self-delimiting: `a@Nb` puts `a` and `b` on separate
+    lines. Names cannot start with capital `N`.
 
                                                  *prompt-send-reference-rules*
 Rules ~
 
 - A name may contain letters, digits, `_` and `-`.
-- `@@` is an escape: `@@buffer` is sent as the literal `@buffer`, and `@@N`
-  as the literal `@N`.
-- An unknown `@name` is left as-is.
-- A reference fails when its function raises an error or returns `nil`. Then
-  nothing is sent and the error is shown. An empty string is a success.
+- `@@` escapes `@`: `@@buffer` sends the literal `@buffer`.
+- Unknown `@name` is left as-is.
+- If a function errors or returns `nil`, nothing is sent and an error is
+  shown. An empty string is valid.
 
 ==============================================================================
 COMMANDS                                                *prompt-send-commands*
 
 :PromptSend {prompt}                                             *:PromptSend*
-    Send a prompt, replacing every `@reference` first. Works from Visual
-    mode; the leading `'<,'>` is handled for you. >vim
+    Resolve |prompt-send-references| and send. Works from Visual mode; the
+    leading `'<,'>` is ignored. >vim
 
       :PromptSend check @buffer
       :'<,'>PromptSend explain @select
-      :PromptSend what is wrong here: @select @diagnostic
 <
-    Typing `@` completes reference names. See |prompt-send-references| for
-    the escape and failure rules.
 
 :PromptTmuxPane [pane]                                       *:PromptTmuxPane*
     Choose the tmux pane used by the tmux sender.
@@ -232,7 +179,7 @@ COMMANDS                                                *prompt-send-commands*
                     |prompt-send-config-agents|).
       A pane id     always send there, e.g. `%0`.
 
-    The argument completes: type `:PromptTmuxPane ` and press <Tab>.
+    Pane ids and `auto` complete with <Tab>.
 
 :PromptTerminal [name]                                       *:PromptTerminal*
     Choose the Neovim |:terminal| buffer used by the terminal sender.
