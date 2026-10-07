@@ -12,27 +12,48 @@ directed and reviewed it. Treat it accordingly.
   `@gitdiff`, `@N`, plus your own.
 - @reference completion; works directly from Visual mode.
 
-==============================================================================
-SETUP                                                      *prompt-send.setup*
+# Setup ~
 
+`require('prompt-send').setup({})` configures the plugin (replace `{}` with
+your config table). All keys are optional; requiring the module already
+applies these defaults. A bad `via` is reported as an error; the plugin then
+refuses to send. Nothing else is validated.
+
+See |prompt-send.config| for the default values.
+
+------------------------------------------------------------------------------
+                                                            *prompt-send.config*
+                              `prompt_send.config`
+
+Defaults ~
 >lua
-  require('prompt-send').setup({
-      via = 'tmux',       -- 'tmux' | 'terminal' | 'command'
+  prompt_send.config = {
+    via = "tmux",        -- "tmux" | "terminal" | "command"
+    references = {},
 
-      tmux     = { pane = nil, enter = true },
-      terminal = { enter = true },
-      command  = { run = nil, stdin = false },
+    tmux = {
+      pane = nil,        -- "%2" | nil (pick per send)
+      enter = true,      -- append Enter
+    },
+    terminal = {
+      enter = true,      -- append a newline
+    },
+    command = {
+      run = nil,         -- string | fun(prompt): string|string[]
+      stdin = false,     -- pass prompt via stdin instead of as the last arg
+    },
 
-      agents     = { 'opencode', 'claude', 'codex', 'aider', 'gemini',
-                     'crush', 'goose', 'cursor-agent', 'openhands' },
-      references = {},
-  })
+    agents = {           -- names matched against pane command + title
+      "opencode", "claude", "codex", "aider", "gemini", "crush", "goose",
+      "cursor-agent", "openhands",
+    },
+  }
+
 <
-All keys are optional. Requiring the module already applies these defaults.
-A bad `via` is reported as an error; the plugin then refuses to send.
-Nothing else is validated.
+------------------------------------------------------------------------------
+                                                               *prompt-send.via*
 
-via                                                          *prompt-send.via*
+via
 
     Which method sends the prompt: `'tmux'` (default), `'terminal'`, or
     `'command'`. Each has its own table below.
@@ -40,7 +61,10 @@ via                                                          *prompt-send.via*
     The tmux and terminal senders deliver a multi-line prompt as a bracketed
     paste, so its newlines are inserted rather than submitted.
 
-tmux                                                        *prompt-send.tmux*
+------------------------------------------------------------------------------
+                                                              *prompt-send.tmux*
+
+tmux
 
     Options for the tmux sender.
 
@@ -49,14 +73,20 @@ tmux                                                        *prompt-send.tmux*
            |:PromptTmuxPane| overrides it for the current session.
     enter  Append `Enter` (default `true`).
 
-terminal                                                *prompt-send.terminal*
+------------------------------------------------------------------------------
+                                                          *prompt-send.terminal*
+
+terminal
 
     Options for the Neovim-terminal sender.
 
     enter  Append a newline (default `true`). Pick the buffer with
            |:PromptTerminal|.
 
-command                                                  *prompt-send.command*
+------------------------------------------------------------------------------
+                                                           *prompt-send.command*
+
+command
 
     Options for the command sender.
 
@@ -69,14 +99,20 @@ command                                                  *prompt-send.command*
     Its stdout is discarded; a non-zero exit shows the stderr as an error
     notification. Success is silent — no reply is read.
 
-agents                                                    *prompt-send.agents*
+------------------------------------------------------------------------------
+                                                            *prompt-send.agents*
+
+agents
 
     How the tmux sender picks a pane when `pane` is `nil`: each pane's
     `pane_current_command` and `pane_title` are matched against this list,
     first match wins, and if nothing matches it uses the first non-Neovim
     pane. Set `agents = {}` to skip the name match.
 
-references                                            *prompt-send.references*
+------------------------------------------------------------------------------
+                                                        *prompt-send.references*
+
+references
 
     Table mapping a name to a function with no arguments that returns a
     string. Merged over the built-in references; same name overrides.
@@ -93,10 +129,73 @@ references                                            *prompt-send.references*
     the error is shown. An empty string is a success, and an unknown @name is
     left as-is.
 
-==============================================================================
-COMMANDS
+------------------------------------------------------------------------------
 
-:PromptSend {prompt}                                             *:PromptSend*
+# References ~
+
+------------------------------------------------------------------------------
+                                                           *prompt-send-@buffer*
+                                   `@buffer`
+
+    Current buffer content.
+
+------------------------------------------------------------------------------
+                                                             *prompt-send-@file*
+                                    `@file`
+
+    Current buffer's path, relative to the working directory.
+
+------------------------------------------------------------------------------
+                                                           *prompt-send-@select*
+                                   `@select`
+
+    Last Visual selection, read from the |'<| and |'>| marks (no need to
+    re-enter Visual mode). Supports char, line, and block selections.
+
+------------------------------------------------------------------------------
+                                                          *prompt-send-@gitdiff*
+                                   `@gitdiff`
+
+    Unstaged changes in the repository ("git diff --no-color").
+
+------------------------------------------------------------------------------
+                                                       *prompt-send-@diagnostic*
+                                 `@diagnostic`
+
+    LSP diagnostics of the current buffer.
+
+------------------------------------------------------------------------------
+                                                                *prompt-send-@N*
+                                      `@N`
+
+    A literal newline. `@N` is self-delimiting, so it works right next to
+    text: `a@Nb` gives `a` and `b` on separate lines. Capital `N` is
+    reserved — do not start a reference name with it. `@@N` gives a literal
+    `@N`.
+
+------------------------------------------------------------------------------
+
+# API ~
+
+------------------------------------------------------------------------------
+                                                          *prompt-send.target()*
+                             `prompt-send.target`()
+
+    Returns where prompts will go: a pane id (e.g. `"%0"`) or `"auto"` for
+    the tmux sender, `"terminal"`, or `"command"`. It only reads in-memory
+    state, so it is cheap enough for a statusline.
+
+>lua
+    'send:' .. require('prompt-send').target()
+<
+------------------------------------------------------------------------------
+
+# Commands ~
+
+------------------------------------------------------------------------------
+                                                                   *:PromptSend*
+
+:PromptSend {prompt}
 
     Send a prompt, replacing every @reference first. Works from Visual
     mode; the leading `'<,'>` is handled for you.
@@ -111,7 +210,10 @@ COMMANDS
     |prompt-send-@N|). Unknown @names are left as-is, but if a known
     reference fails, nothing is sent and the error is shown.
 
-:PromptTmuxPane [pane]                                       *:PromptTmuxPane*
+------------------------------------------------------------------------------
+                                                               *:PromptTmuxPane*
+
+:PromptTmuxPane [pane]
 
     No argument  pick a pane from a list.
     `auto`       go back to the automatic choice (see |prompt-send.agents|).
@@ -119,7 +221,10 @@ COMMANDS
 
     The argument completes: type `:PromptTmuxPane ` and press <Tab>.
 
-:PromptTerminal [name]                                       *:PromptTerminal*
+------------------------------------------------------------------------------
+                                                               *:PromptTerminal*
+
+:PromptTerminal [name]
 
     Choose the Neovim |:terminal| buffer used by the terminal sender.
 
@@ -127,52 +232,11 @@ COMMANDS
     `auto`       pick one matching `agents`, else the most recent.
     A name       use the terminal whose title contains that name.
 
-==============================================================================
-REFERENCES
+------------------------------------------------------------------------------
 
-@buffer                                                  *prompt-send-@buffer*
+# Recipes ~
 
-    Current buffer content.
-
-@file                                                      *prompt-send-@file*
-
-    Current buffer's path, relative to the working directory.
-
-@select                                                  *prompt-send-@select*
-
-    Last Visual selection, read from the |'<| and |'>| marks (no need to
-    re-enter Visual mode). Supports char, line, and block selections.
-
-@diagnostic                                          *prompt-send-@diagnostic*
-
-    LSP diagnostics of the current buffer.
-
-@gitdiff                                                *prompt-send-@gitdiff*
-
-    Unstaged changes in the repository ("git diff --no-color").
-
-@N                                                            *prompt-send-@N*
-
-    A literal newline. `@N` is self-delimiting, so it works right next to
-    text: `a@Nb` gives `a` and `b` on separate lines. Capital `N` is
-    reserved — do not start a reference name with it. `@@N` gives a literal
-    `@N`.
-
-==============================================================================
-API
-
-prompt-send.target()                                    *prompt-send.target()*
-
-    Returns where prompts will go: a pane id (e.g. `"%0"`) or `"auto"` for
-    the tmux sender, `"terminal"`, or `"command"`. It only reads in-memory
-    state, so it is cheap enough for a statusline.
-
->lua
-    'send:' .. require('prompt-send').target()
-<
-
-==============================================================================
-STATUSLINE
+## Statusline ~
 
 With mini.statusline, rebuild `content.active` and append
 |prompt-send.target()| to a group:
@@ -206,14 +270,11 @@ With mini.statusline, rebuild `content.active` and append
       })
 <
 
-==============================================================================
-RECIPES
+## Send to a running opencode session ~
 
-Send to a running opencode session
-
-    opencode's `api` subcommand handles service discovery and auth, so there
-    is no shell or wrapper to write. Use a function `command.run` so the
-    prompt is JSON-encoded:
+opencode's `api` subcommand handles service discovery and auth, so there is
+no shell or wrapper to write. Use a function `command.run` so the prompt is
+JSON-encoded:
 
 >lua
       local session = vim.env.OPENCODE_SESSION   -- e.g. 'ses_...'
@@ -231,8 +292,9 @@ Send to a running opencode session
           },
       })
 <
-    Get a session id with `opencode session list`, then start Neovim with
-    `OPENCODE_SESSION=ses_... nvim`. Add `resume = false` to the JSON body to
-    admit the input without running the agent.
+Get a session id with `opencode session list`, then start Neovim with
+`OPENCODE_SESSION=ses_... nvim`. Add `resume = false` to the JSON body to
+admit the input without running the agent.
 
-vim:tw=78:ts=8:noet:ft=help:norl:
+
+ vim:tw=78:ts=8:noet:ft=help:norl:
