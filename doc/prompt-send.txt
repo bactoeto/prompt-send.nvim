@@ -80,8 +80,8 @@ Tmux and terminal use bracketed paste for multi-line prompts.
 tmux ~
 
 `tmux.pane`  (string or nil, default `nil`)
-    Pin a pane id such as `"%2"`; `nil` picks per send (see
-    |prompt-send-config-agents|). Change it with |:PromptTmuxPane|.
+    Pin a pane id such as `"%2"`; `nil` picks one that looks like an agent per 
+    send (see |prompt-send-config-agents|). Change it with |:PromptTmuxPane|.
 
 `tmux.enter`  (boolean, default `true`)
     Append Enter after the prompt.
@@ -90,7 +90,10 @@ tmux ~
 terminal ~
 
 `terminal.enter`  (boolean, default `true`)
-    Append a newline after the prompt. Choose a buffer with |:PromptTerminal|.
+    Append a newline after the prompt.
+
+By default it picks a terminal buffer that looks like an agent.
+Choose a buffer with |:PromptTerminal|.
 
                                                   *prompt-send-config-command*
 command ~
@@ -108,7 +111,9 @@ Stdout is discarded; a non-zero exit reports stderr. Success is silent.
                                                    *prompt-send-config-agents*
 agents ~
 
-Type: list of strings. For automatic tmux selection, match pane command and
+Type: list of strings. 
+
+For automatic tmux selection, match pane command and
 title; use the first matching pane, or the first non-Neovim pane. For terminal
 selection, match `term_title`, or use the most recent buffer. Set
 `agents = {}` to skip matching.
@@ -116,7 +121,9 @@ selection, match `term_title`, or use the most recent buffer. Set
                                                *prompt-send-config-references*
 references ~
 
-Type: table, default `{}`. Map names to zero-argument functions returning
+Type: table, default `{}`. 
+
+Map names to zero-argument functions returning
 strings. Custom names override built-in references. For example: >lua
 
   require('prompt-send').setup({
@@ -175,17 +182,15 @@ COMMANDS                                                *prompt-send-commands*
     Choose the tmux pane used by the tmux sender.
 
       No argument   pick a pane from a list.
-      `auto`        go back to the automatic choice (see
+      `auto`          go back to the automatic choice (see
                     |prompt-send-config-agents|).
       A pane id     always send there, e.g. `%0`.
-
-    Pane ids and `auto` complete with <Tab>.
 
 :PromptTerminal [name]                                       *:PromptTerminal*
     Choose the Neovim |:terminal| buffer used by the terminal sender.
 
       No argument   open a picker listing the terminal buffers.
-      `auto`        pick one matching `agents`, else the most recent.
+      `auto`          pick one matching `agents`, else the most recent.
       A name        use the terminal whose title contains that name.
 
 ==============================================================================
