@@ -82,6 +82,18 @@ eq('target: command', prompt.target(), 'command')
 prompt.setup({ via = 'terminal' })
 eq('target: terminal', prompt.target(), 'terminal')
 
+-- -- target() short labels ---------------------------------------------------
+
+prompt.setup({ via = 'tmux', tmux = { pane = 'auto' } })
+eq('target: short auto', prompt.target({ short = true }), 'A')
+prompt.setup({ tmux = { pane = '%2' } })
+eq('target: short pinned pane is unchanged', prompt.target({ short = true }), '%2')
+prompt.setup({ via = 'command' })
+eq('target: short command', prompt.target({ short = true }), 'C')
+prompt.setup({ via = 'terminal' })
+eq('target: short terminal', prompt.target({ short = true }), 'T')
+eq('target: omitting opts keeps the long form', prompt.target(), 'terminal')
+
 -- -- terminal sender ---------------------------------------------------------
 
 do

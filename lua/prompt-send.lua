@@ -631,23 +631,29 @@ end
 ---@text # API ~
 
 ---@tag prompt-send.target()
----@signature prompt-send.target()
+---@signature prompt-send.target(opts)
 ---@text     Returns where prompts will go: a pane id (e.g. `"%0"`) or `"auto"` for
 ---     the tmux sender, `"terminal"`, or `"command"`. It only reads in-memory
 ---     state, so it is cheap enough for a statusline.
 ---
+---     `opts` is an optional table. With `opts.short = true`, `"auto"`,
+---     `"terminal"` and `"command"` become the short labels `"A"`, `"T"` and
+---     `"C"`; a pinned pane id is already short and is returned unchanged.
+---
 --- >lua
 ---     'send:' .. require('prompt-send').target()
+---     'send:' .. require('prompt-send').target({ short = true })
 --- <
-function prompt_send.target()
+function prompt_send.target(opts)
+  opts = opts or {}
   local via = prompt_send.config.via
   if via == "terminal" then
-    return "terminal"
+    return opts.short and "T" or "terminal"
   end
   if via == "command" then
-    return "command"
+    return opts.short and "C" or "command"
   end
-  return prompt_send.config.tmux.pane or "auto"
+  return prompt_send.config.tmux.pane or (opts.short and "A" or "auto")
 end
 
 -- ── Setup ──────────────────────────────────────────────────────────────────
